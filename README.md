@@ -1,0 +1,57 @@
+# Gestión de turnos
+
+Aplicación web instalable (PWA) para gestionar turnos y compartir material con pacientes.
+Hecha por [Sushi Software Studio](https://sushisoftwarestudio.com.ar).
+
+**Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · PostgreSQL · Drizzle ORM.
+
+## Estado
+
+- [x] Paso 1: base del proyecto, PWA, base de datos, login por invitación y roles (administradora / paciente).
+- [ ] Paso 2: pacientes (alta individual e importación CSV), calendario con citas y otros eventos, notas privadas.
+- [ ] Paso 3: vista del paciente (ver turno, confirmar, pedir cambio por mensaje).
+- [ ] Paso 4: recordatorios (push + email 24 h y 2 h antes) y botón de WhatsApp manual.
+- [ ] Paso 5: foro con archivos, comentarios y moderación.
+
+## Desarrollo local
+
+Requisitos: Node 22+ y PostgreSQL 16 (o Docker).
+
+```bash
+cp .env.example .env
+docker compose up -d          # PostgreSQL local (o apuntá DATABASE_URL a tu propia base)
+npm install
+npm run db:migrate            # crea las tablas
+ADMIN_EMAIL=ana@ejemplo.com ADMIN_NAME="Ana" ADMIN_PASSWORD="una-clave-larga" npm run seed:admin
+npm run dev                   # http://localhost:3000
+```
+
+Hasta que exista el alta de pacientes en el panel, se puede invitar a un paciente por consola:
+
+```bash
+npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de invitación
+```
+
+## Cómo funciona el acceso
+
+- Nadie se registra solo: la administradora da de alta al paciente y se genera un link de invitación (válido 7 días, un solo uso).
+- Del token solo se guarda el hash. Las contraseñas se guardan con bcrypt.
+- Las sesiones viven en la base de datos (cookie `httpOnly`, 30 días), así que se pueden revocar. Un paciente desactivado pierde el acceso de inmediato.
+- Cada página vuelve a verificar sesión y rol en el servidor (`requireUser`); `src/proxy.ts` es solo un chequeo optimista.
+- El service worker no guarda páginas ni datos en caché: la información de los pacientes no queda en el dispositivo.
+
+## Scripts
+
+| Comando | Qué hace |
+| --- | --- |
+| `npm run dev` / `build` / `start` | Desarrollo, build y producción |
+| `npm run db:generate` | Genera una migración a partir de `src/db/schema.ts` |
+| `npm run db:migrate` | Aplica las migraciones |
+| `npm run seed:admin` | Crea o actualiza a la administradora |
+| `npm run invite` | Genera un link de invitación (desarrollo) |
+| `npm run lint` / `typecheck` | Chequeos |
+
+## Pendientes conocidos
+
+- El límite de intentos de login es en memoria (una sola instancia); en producción con varias instancias conviene moverlo a la base o a Redis.
+- Falta el flujo de "olvidé mi contraseña" (se resuelve reinvitando al paciente desde el panel).

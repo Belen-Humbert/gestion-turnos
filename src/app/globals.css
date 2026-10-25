@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root {
+  --verde: #2b6a62;
+  --verde-oscuro: #1e4a44;
+  --verde-claro: #ddede9;
+  --amarillo: #fcefd2;
+  --violeta: #ece8f8;
+  --violeta-texto: #4f3c98;
+  --azul: #e3eef9;
+  --azul-texto: #1f4e7a;
+  --fondo: #f3f6f4;
+  --borde: #dce5e1;
+  --texto: #1e2b28;
+  --texto-suave: #55645f;
+  --error: #a3262a;
+}
+
+@theme inline {
+  --color-verde: var(--verde);
+  --color-verde-oscuro: var(--verde-oscuro);
+  --color-verde-claro: var(--verde-claro);
+  --color-amarillo: var(--amarillo);
+  --color-violeta: var(--violeta);
+  --color-violeta-texto: var(--violeta-texto);
+  --color-azul: var(--azul);
+  --color-azul-texto: var(--azul-texto);
+  --color-fondo: var(--fondo);
+  --color-borde: var(--borde);
+  --color-texto: var(--texto);
+  --color-suave: var(--texto-suave);
+  --color-error: var(--error);
+  --font-sans: "Nunito", system-ui, sans-serif;
+}
+
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--font-sans);
+}
+
+:focus-visible {
+  outline: 3px solid var(--verde);
+  outline-offset: 2px;
+}
