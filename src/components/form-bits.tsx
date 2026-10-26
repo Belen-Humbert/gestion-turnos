@@ -22,6 +22,7 @@ export function Field({
   autoComplete,
   hint,
   defaultValue,
+  required = true,
 }: {
   label: string;
   name: string;
@@ -29,6 +30,7 @@ export function Field({
   autoComplete?: string;
   hint?: string;
   defaultValue?: string;
+  required?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -39,7 +41,7 @@ export function Field({
         id={name}
         name={name}
         type={type}
-        required
+        required={required}
         autoComplete={autoComplete}
         defaultValue={defaultValue}
         className="h-12 rounded-xl border-[1.5px] border-borde bg-white px-3.5 text-base font-semibold"

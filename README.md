@@ -8,7 +8,7 @@ Hecha por [Sushi Software Studio](https://sushisoftwarestudio.com.ar).
 ## Estado
 
 - [x] Paso 1: base del proyecto, PWA, base de datos, login por invitación y roles (administradora / paciente).
-- [ ] Paso 2: pacientes (alta individual e importación CSV), calendario con citas y otros eventos, notas privadas.
+- [~] Paso 2: pacientes (alta individual ✅, listado, perfil, desactivar y reinvitar ✅; importación CSV pendiente), calendario con citas y otros eventos, notas privadas.
 - [ ] Paso 3: vista del paciente (ver turno, confirmar, pedir cambio por mensaje).
 - [ ] Paso 4: recordatorios (push + email 24 h y 2 h antes) y botón de WhatsApp manual.
 - [ ] Paso 5: foro con archivos, comentarios y moderación.
@@ -26,7 +26,7 @@ ADMIN_EMAIL=ana@ejemplo.com ADMIN_NAME="Ana" ADMIN_PASSWORD="una-clave-larga" np
 npm run dev                   # http://localhost:3000
 ```
 
-Hasta que exista el alta de pacientes en el panel, se puede invitar a un paciente por consola:
+Los pacientes se dan de alta desde el panel (Pacientes → Agregar paciente). También se puede invitar por consola:
 
 ```bash
 npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de invitación
@@ -49,7 +49,7 @@ npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de 
 | `npm run db:migrate` | Aplica las migraciones |
 | `npm run seed:admin` | Crea o actualiza a la administradora |
 | `npm run invite` | Genera un link de invitación (desarrollo) |
-| `npm run lint` / `typecheck` | Chequeos |
+| `npm run lint` / `typecheck` / `test` | Chequeos y tests |
 
 ## Pendientes conocidos
 
