@@ -1,0 +1,69 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { z } from "zod";
+import { CancelForm, EventForm } from "@/components/agenda/event-form";
+import { eventTone } from "@/components/agenda/styles";
+import { getEvent } from "@/lib/agenda";
+import { dateToHm, dateToYmd, formatLong, minutesBetween } from "@/lib/dates";
+import { requireUser } from "@/lib/session";
+
+export const metadata: Metadata = { title: "Evento" };
+
+export default async function EventPage({ params }: PageProps<"/admin/agenda/[id]">) {
+  await requireUser("admin");
+  const { id } = await params;
+  if (!z.string().uuid().safeParse(id).success) notFound();
+  const event = await getEvent(id);
+  if (!event || event.cancelledAt) notFound();
+
+  const date = dateToYmd(event.startsAt);
+  const tone = eventTone(event);
+  const isAppointment = event.kind === "appointment";
+
+  return (
+    <div className="mx-auto flex max-w-xl flex-col gap-5">
+      <Link href={`/admin?fecha=${date}`} className="text-sm font-extrabold text-verde underline">
+        ← Volver a la agenda
+      </Link>
+
+      <header className={`rounded-[18px] border-l-4 px-5 py-4 ${tone.box}`}>
+        <p className="text-xs font-extrabold uppercase tracking-wide">{tone.label}</p>
+        <h1 className="mt-0.5 text-2xl font-extrabold">{event.title}</h1>
+        <p className="text-[15px] font-bold first-letter:uppercase">
+          {formatLong(date)} · {dateToHm(event.startsAt)} a {dateToHm(event.endsAt)}
+        </p>
+        {isAppointment && event.patientId ? (
+          <Link href={`/admin/pacientes/${event.patientId}`} className="mt-1 inline-block text-sm font-extrabold underline">
+            Ver perfil del paciente
+          </Link>
+        ) : null}
+      </header>
+
+      <EventForm
+        defaults={{
+          id: event.id,
+          kind: event.kind,
+          patientName: isAppointment ? event.title : undefined,
+          title: isAppointment ? undefined : event.title,
+          date,
+          start: dateToHm(event.startsAt),
+          end: dateToHm(event.endsAt),
+          duration: minutesBetween(event.startsAt, event.endsAt),
+          location: event.location ?? "",
+          note: event.privateNote ?? "",
+        }}
+      />
+
+      <section aria-label="Cancelar" className="rounded-[22px] border border-borde bg-white p-6">
+        <h2 className="mb-1 text-lg font-extrabold">{isAppointment ? "Cancelar cita" : "Eliminar evento"}</h2>
+        <p className="mb-4 text-sm font-semibold text-suave">El horario queda libre en la agenda.</p>
+        <CancelForm
+          id={event.id}
+          inSeries={Boolean(event.seriesId)}
+          label={isAppointment ? "Cancelar cita" : "Eliminar evento"}
+        />
+      </section>
+    </div>
+  );
+}

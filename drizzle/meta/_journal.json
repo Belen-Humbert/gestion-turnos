@@ -8,6 +8,20 @@
       "when": 1792917179023,
       "tag": "0000_exotic_living_lightning",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793139710765,
+      "tag": "0001_jittery_rumiko_fujikawa",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793139712384,
+      "tag": "0002_events_no_overlap",
+      "breakpoints": true
     }
   ]
 }
