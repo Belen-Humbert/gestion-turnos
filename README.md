@@ -8,7 +8,7 @@ Hecha por [Sushi Software Studio](https://sushisoftwarestudio.com.ar).
 ## Estado
 
 - [x] Paso 1: base del proyecto, PWA, base de datos, login por invitación y roles (administradora / paciente).
-- [~] Paso 2: pacientes (alta individual ✅, listado, perfil, desactivar y reinvitar ✅; importación CSV pendiente), calendario con citas y otros eventos, notas privadas.
+- [~] Paso 2: pacientes ✅ (importación CSV pendiente) · agenda ✅ (citas, otros eventos, repetición semanal, editar y cancelar, sin superposición) · notas privadas en el perfil del paciente (pendiente).
 - [ ] Paso 3: vista del paciente (ver turno, confirmar, pedir cambio por mensaje).
 - [ ] Paso 4: recordatorios (push + email 24 h y 2 h antes) y botón de WhatsApp manual.
 - [ ] Paso 5: foro con archivos, comentarios y moderación.
@@ -50,6 +50,13 @@ npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de 
 | `npm run seed:admin` | Crea o actualiza a la administradora |
 | `npm run invite` | Genera un link de invitación (desarrollo) |
 | `npm run lint` / `typecheck` / `test` | Chequeos y tests |
+
+## Agenda
+
+- Lunes a viernes, vistas semana y día. Los horarios se guardan en UTC y se muestran en hora de Argentina (sin horario de verano).
+- Dos eventos activos nunca se superponen: lo controla la app con un mensaje claro y, además, una restricción de exclusión en PostgreSQL (`events_no_overlap`). Cancelar libera el horario.
+- La repetición semanal crea las citas por adelantado (4, 8, 12 o 26 semanas) y comparten una serie; al cancelar se elige "solo este" o "este y los siguientes".
+- Una cita nueva queda "sin confirmar" hasta que el paciente la confirme (paso 3). Si se cambia el horario, vuelve a quedar sin confirmar.
 
 ## Pendientes conocidos
 
