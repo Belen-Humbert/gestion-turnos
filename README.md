@@ -66,7 +66,7 @@ npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de 
 - El administrador lo ve en **Pedidos** (con contador en el menú) y en la cita. Reprogramar o cancelar la cita marca el pedido como atendido; también se puede marcar a mano. Responder por WhatsApp es siempre manual.
 
 ### Perfil y preferencias del paciente
-- El paciente ve su nombre y email (solo lectura: los gestiona el administrador) y puede editar su celular y cambiar su contraseña. Cambiarla cierra las sesiones de otros dispositivos y limita los intentos fallidos.
+- El perfil se divide en pestañas (Mis datos · Recordatorios · Contraseña, `?seccion=`). El paciente ve su nombre y email (solo lectura: los gestiona el administrador) y puede editar su celular y cambiar su contraseña. Cambiarla cierra las sesiones de otros dispositivos y limita los intentos fallidos.
 - Preferencias de recordatorio (canal: email / notificación en el dispositivo; momento: 24 h / 2 h antes). Se guardan en `users` y las usará el Paso 4. Los recordatorios llevan solo día, hora y lugar.
 
 ## Pendientes conocidos
