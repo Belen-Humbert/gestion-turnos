@@ -5,12 +5,15 @@ import { z } from "zod";
 import { StatusBadge } from "@/components/status-badge";
 import { upcomingAppointments } from "@/lib/agenda";
 import { dateToHm, dateToYmd, formatLong } from "@/lib/dates";
+import { listPatientNotes } from "@/lib/notes";
 import { getPatient } from "@/lib/patients";
 import { requireUser } from "@/lib/session";
+import { NotesSection } from "./notes";
 import { ActiveToggle, EditPatientForm, InvitationSection } from "./patient-forms";
 
 export const metadata: Metadata = { title: "Paciente" };
 
+const noteDate = new Intl.DateTimeFormat("es-AR", { dateStyle: "long", timeStyle: "short", timeZone: "America/Argentina/Buenos_Aires" });
 const dateFmt = new Intl.DateTimeFormat("es-AR", { dateStyle: "long", timeZone: "America/Argentina/Buenos_Aires" });
 
 export default async function PatientPage({ params }: PageProps<"/admin/pacientes/[id]">) {
@@ -19,6 +22,14 @@ export default async function PatientPage({ params }: PageProps<"/admin/paciente
   if (!z.string().uuid().safeParse(id).success) notFound();
   const patient = await getPatient(id);
   if (!patient) notFound();
+  const notes = (await listPatientNotes(patient.id)).map((n) => ({
+    key: n.key,
+    source: n.source,
+    noteId: n.noteId,
+    eventId: n.eventId,
+    body: n.body,
+    dateLabel: noteDate.format(n.date),
+  }));
   const upcoming = patient.active ? await upcomingAppointments(patient.id) : [];
 
   return (
@@ -74,6 +85,8 @@ export default async function PatientPage({ params }: PageProps<"/admin/paciente
           )}
         </section>
       ) : null}
+
+      <NotesSection patientId={patient.id} notes={notes} />
 
       <section aria-label="Datos del paciente" className="rounded-[22px] border border-borde bg-white p-6">
         <h2 className="mb-4 text-lg font-extrabold">Datos</h2>

@@ -98,3 +98,18 @@ export const events = pgTable(
 );
 
 export type CalendarEvent = typeof events.$inferSelect;
+
+// Notas privadas sobre un paciente. Solo las ve la administradora: ninguna pantalla ni
+// notificación del paciente debe leer esta tabla.
+export const patientNotes = pgTable(
+  "patient_notes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    patientId: uuid("patient_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("patient_notes_patient_idx").on(t.patientId, t.createdAt)],
+);
