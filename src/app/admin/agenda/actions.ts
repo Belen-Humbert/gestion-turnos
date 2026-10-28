@@ -19,6 +19,7 @@ import {
   todayYmd,
   weeklyOccurrences,
 } from "@/lib/dates";
+import { resolveRequestsForEvents } from "@/lib/requests";
 import { requireUser } from "@/lib/session";
 
 export type EventFormState = { error?: string; values?: Record<string, string> } | undefined;
@@ -127,6 +128,8 @@ export async function saveEvent(_prev: EventFormState, formData: FormData): Prom
       if (isOverlapViolation(e)) return fail(OVERLAP_MSG);
       throw e;
     }
+    // Si se reprogramó, el pedido de cambio del paciente queda atendido.
+    if (startsAt.getTime() !== current.startsAt.getTime()) await resolveRequestsForEvents([idRaw]);
     redirect(`/admin?fecha=${date}`);
   }
 
@@ -178,14 +181,17 @@ export async function cancelEvent(_prev: EventFormState, formData: FormData): Pr
   const following = formData.get("scope") === "following" && event.seriesId;
   const now = new Date();
   if (following) {
-    await db
+    const cancelled = await db
       .update(events)
       .set({ cancelledAt: now })
       .where(
         and(eq(events.seriesId, event.seriesId!), gte(events.startsAt, event.startsAt), isNull(events.cancelledAt)),
-      );
+      )
+      .returning({ id: events.id });
+    await resolveRequestsForEvents(cancelled.map((c) => c.id));
   } else {
     await db.update(events).set({ cancelledAt: now }).where(eq(events.id, id.data));
+    await resolveRequestsForEvents([id.data]);
   }
   redirect(`/admin?fecha=${dateToYmd(event.startsAt)}`);
 }

@@ -7,6 +7,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -112,4 +113,26 @@ export const patientNotes = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("patient_notes_patient_idx").on(t.patientId, t.createdAt)],
+);
+
+// Pedidos de cambio de turno: el paciente no reprograma, solo avisa con un mensaje y la
+// administradora decide. Como máximo un pedido abierto por cita.
+export const changeRequests = pgTable(
+  "change_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "restrict" }),
+    patientId: uuid("patient_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    message: text("message").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("change_requests_patient_idx").on(t.patientId),
+    uniqueIndex("change_requests_one_open_idx").on(t.eventId).where(sql`${t.resolvedAt} is null`),
+  ],
 );
