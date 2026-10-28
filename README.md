@@ -8,7 +8,7 @@ Hecha por [Sushi Software Studio](https://sushisoftwarestudio.com.ar).
 ## Estado
 
 - [x] Paso 1: base del proyecto, PWA, base de datos, login por invitación y roles (administradora / paciente).
-- [~] Paso 2: pacientes ✅ (importación CSV pendiente) · agenda ✅ (citas, otros eventos, repetición semanal, editar y cancelar, sin superposición) · notas privadas en el perfil del paciente (pendiente).
+- [~] Paso 2: pacientes ✅ (importación CSV pendiente) · agenda ✅ (citas, otros eventos, repetición semanal, editar y cancelar, sin superposición) · notas privadas en el perfil del paciente ✅ (solo el administrador; incluye las notas de las citas del calendario).
 - [ ] Paso 3: vista del paciente (ver turno, confirmar, pedir cambio por mensaje).
 - [ ] Paso 4: recordatorios (push + email 24 h y 2 h antes) y botón de WhatsApp manual.
 - [ ] Paso 5: foro con archivos, comentarios y moderación.

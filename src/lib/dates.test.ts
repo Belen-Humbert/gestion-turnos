@@ -10,7 +10,10 @@ import {
   snapToWeekday,
   stepWeekday,
   weekdayIndex,
+  addMonths,
   formatRange,
+  lastOfMonth,
+  monthWeeks,
   weeklyOccurrences,
 } from "./dates";
 
@@ -67,5 +70,27 @@ describe("formatRange", () => {
   it("resume la semana", () => {
     expect(formatRange("2026-10-26", "2026-10-30")).toBe("26 al 30 de octubre de 2026");
     expect(formatRange("2026-10-26", "2026-11-02")).toBe("26 de octubre al 2 de noviembre de 2026");
+  });
+});
+
+describe("mes", () => {
+  it("calcula fin de mes y meses vecinos", () => {
+    expect(lastOfMonth("2026-02-10")).toBe("2026-02-28");
+    expect(lastOfMonth("2028-02-10")).toBe("2028-02-29");
+    expect(addMonths("2026-10-27", 1)).toBe("2026-11-01");
+    expect(addMonths("2026-01-15", -1)).toBe("2025-12-01");
+    expect(addMonths("2026-12-31", 1)).toBe("2027-01-01");
+  });
+  it("arma las semanas hábiles del mes", () => {
+    const weeks = monthWeeks("2026-10-27");
+    expect(weeks[0]).toEqual(["2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02"]);
+    expect(weeks.at(-1)).toEqual(["2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30"]);
+    expect(weeks).toHaveLength(5);
+  });
+  it("no agrega una semana que cae solo en fin de semana", () => {
+    // 1 de noviembre de 2026 es domingo: la semana del 26 al 30 de octubre no pertenece a noviembre.
+    const weeks = monthWeeks("2026-11-15");
+    expect(weeks[0][0]).toBe("2026-11-02");
+    expect(weeks.every((w) => w.some((d) => d.startsWith("2026-11")))).toBe(true);
   });
 });

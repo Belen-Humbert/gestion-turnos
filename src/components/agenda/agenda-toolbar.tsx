@@ -1,12 +1,25 @@
 import Link from "next/link";
-import { addDays, formatLong, formatRange, mondayOf, snapToWeekday, stepWeekday, todayYmd } from "@/lib/dates";
+import {
+  addDays,
+  addMonths,
+  formatLong,
+  formatMonth,
+  formatRange,
+  mondayOf,
+  snapToWeekday,
+  stepWeekday,
+  todayYmd,
+} from "@/lib/dates";
 
-export function AgendaToolbar({ view, date }: { view: "semana" | "dia"; date: string }) {
+export type AgendaViewName = "semana" | "dia" | "mes";
+
+export function AgendaToolbar({ view, date }: { view: AgendaViewName; date: string }) {
   const monday = mondayOf(date);
-  const prev = view === "semana" ? addDays(monday, -7) : stepWeekday(date, -1);
-  const next = view === "semana" ? addDays(monday, 7) : stepWeekday(date, 1);
+  const prev = view === "mes" ? addMonths(date, -1) : view === "semana" ? addDays(monday, -7) : stepWeekday(date, -1);
+  const next = view === "mes" ? addMonths(date, 1) : view === "semana" ? addDays(monday, 7) : stepWeekday(date, 1);
   const go = (d: string) => `/admin?vista=${view}&fecha=${d}`;
-  const title = view === "semana" ? formatRange(monday, addDays(monday, 4)) : formatLong(date);
+  const title = view === "mes" ? formatMonth(date) : view === "semana" ? formatRange(monday, addDays(monday, 4)) : formatLong(date);
+  const unit = view === "mes" ? "Mes" : view === "semana" ? "Semana" : "Día";
 
   const btn =
     "flex min-h-11 items-center justify-center rounded-xl border-[1.5px] border-borde bg-white px-4 text-sm font-extrabold hover:bg-fondo";
@@ -40,17 +53,17 @@ export function AgendaToolbar({ view, date }: { view: "semana" | "dia"; date: st
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Link href={go(prev)} className={btn} aria-label={view === "semana" ? "Semana anterior" : "Día anterior"}>
+        <Link href={go(prev)} className={btn} aria-label={`${unit} anterior`}>
           ←
         </Link>
         <Link href={go(snapToWeekday(todayYmd()))} className={btn}>
           Hoy
         </Link>
-        <Link href={go(next)} className={btn} aria-label={view === "semana" ? "Semana siguiente" : "Día siguiente"}>
+        <Link href={go(next)} className={btn} aria-label={`${unit} siguiente`}>
           →
         </Link>
         <nav aria-label="Vista" className="ml-auto flex gap-1.5">
-          {(["semana", "dia"] as const).map((v) => (
+          {(["semana", "dia", "mes"] as const).map((v) => (
             <Link
               key={v}
               href={`/admin?vista=${v}&fecha=${date}`}
@@ -59,7 +72,7 @@ export function AgendaToolbar({ view, date }: { view: "semana" | "dia"; date: st
                 view === v ? "bg-verde text-white" : "border-[1.5px] border-borde bg-white hover:bg-fondo"
               }`}
             >
-              {v === "semana" ? "Semana" : "Día"}
+              {v === "semana" ? "Semana" : v === "dia" ? "Día" : "Mes"}
             </Link>
           ))}
         </nav>

@@ -101,3 +101,26 @@ export function formatRange(fromYmd: string, toYmd: string): string {
   }
   return `${dayMonthFmt.format(a)} al ${dayMonthFmt.format(b)} de ${year}`;
 }
+
+export function lastOfMonth(ymd: string): string {
+  const [y, m] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(y, m, 0)).toISOString().slice(0, 10);
+}
+
+// Primer día del mes que está n meses después (o antes, si n es negativo).
+export function addMonths(ymd: string, n: number): string {
+  const [y, m] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1 + n, 1)).toISOString().slice(0, 10);
+}
+
+// Semanas (lunes a viernes) que tocan el mes de la fecha dada.
+export function monthWeeks(ymd: string): string[][] {
+  const first = `${ymd.slice(0, 7)}-01`;
+  const last = lastOfMonth(first);
+  const weeks: string[][] = [];
+  for (let monday = mondayOf(first); monday <= last; monday = addDays(monday, 7)) {
+    const days = [0, 1, 2, 3, 4].map((i) => addDays(monday, i));
+    if (days.some((d) => d >= first && d <= last)) weeks.push(days);
+  }
+  return weeks;
+}
