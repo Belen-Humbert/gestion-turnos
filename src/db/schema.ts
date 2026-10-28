@@ -25,6 +25,11 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash"),
   // Un paciente desactivado conserva su historial pero no puede ingresar.
   active: boolean("active").notNull().default(true),
+  // Preferencias de recordatorio del paciente (el paso 4 las usa para decidir qué enviar).
+  remindEmail: boolean("remind_email").notNull().default(true),
+  remindPush: boolean("remind_push").notNull().default(true),
+  remind24h: boolean("remind_24h").notNull().default(true),
+  remind2h: boolean("remind_2h").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
