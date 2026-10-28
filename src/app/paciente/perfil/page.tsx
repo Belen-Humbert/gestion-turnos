@@ -7,11 +7,26 @@ import { PasswordForm, PhoneForm, RemindersForm } from "./profile-forms";
 
 export const metadata: Metadata = { title: "Perfil" };
 
-function Card({ title, hint, children }: { title: string; hint?: string; children: React.ReactNode }) {
+function Card({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <section aria-label={title} className="rounded-[22px] border border-borde bg-white p-6">
+    <section
+      aria-label={title}
+      className="rounded-[22px] border border-borde bg-white p-6"
+    >
       <h2 className="text-lg font-extrabold">{title}</h2>
-      {hint ? <p className="mb-4 mt-0.5 text-sm font-semibold text-suave">{hint}</p> : <div className="mb-4" />}
+      {hint ? (
+        <p className="mb-4 mt-0.5 text-sm font-semibold text-suave">{hint}</p>
+      ) : (
+        <div className="mb-4" />
+      )}
       {children}
     </section>
   );
@@ -34,30 +49,41 @@ export default async function Page() {
     .limit(1);
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-5">
+    <div className="mx-auto flex max-w-5xl flex-col gap-5">
       <h1 className="text-3xl font-extrabold">Perfil</h1>
+      <div className="grid items-start gap-5 md:grid-cols-2">
+        <div className="flex flex-col gap-5">
+          <Card
+            title="Mis datos"
+            hint="Si hay un error en tu nombre o email, avisalo al consultorio."
+          >
+            <dl className="mb-5 grid gap-3">
+              <div>
+                <dt className="text-sm font-extrabold text-suave">Nombre</dt>
+                <dd className="text-[15px] font-bold">{me.name}</dd>
+              </div>
+              <div>
+                <dt className="text-sm font-extrabold text-suave">Email</dt>
+                <dd className="break-all text-[15px] font-bold">{me.email}</dd>
+              </div>
+            </dl>
+            <PhoneForm phone={me.phone ?? ""} />
+          </Card>
 
-      <Card title="Mis datos" hint="Si hay un error en tu nombre o email, avisalo al consultorio.">
-        <dl className="mb-5 grid gap-3">
-          <div>
-            <dt className="text-sm font-extrabold text-suave">Nombre</dt>
-            <dd className="text-[15px] font-bold">{me.name}</dd>
-          </div>
-          <div>
-            <dt className="text-sm font-extrabold text-suave">Email</dt>
-            <dd className="break-all text-[15px] font-bold">{me.email}</dd>
-          </div>
-        </dl>
-        <PhoneForm phone={me.phone ?? ""} />
-      </Card>
-
-      <Card title="Recordatorios de turnos" hint="Elegí cómo y cuándo avisarte antes de cada turno.">
-        <RemindersForm reminders={me} />
-      </Card>
-
-      <Card title="Contraseña" hint="Al cambiarla se cierra la sesión en tus otros dispositivos.">
-        <PasswordForm />
-      </Card>
+          <Card
+            title="Contraseña"
+            hint="Al cambiarla se cierra la sesión en tus otros dispositivos."
+          >
+            <PasswordForm />
+          </Card>
+        </div>
+        <Card
+          title="Recordatorios de turnos"
+          hint="Elegí cómo y cuándo avisarte antes de cada turno."
+        >
+          <RemindersForm reminders={me} />
+        </Card>
+      </div>
     </div>
   );
 }
