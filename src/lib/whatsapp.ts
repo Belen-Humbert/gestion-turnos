@@ -34,3 +34,9 @@ export function invitationMessage(patientName: string, url: string): string {
   const first = patientName.trim().split(/\s+/)[0] ?? "";
   return `Hola ${first}, te dejo el link para crear tu contraseña y usar la app de turnos: ${url}`;
 }
+
+// Respuesta a un pedido de cambio de turno. Texto neutro, sin datos clínicos.
+export function changeReplyMessage(patientName: string): string {
+  const first = patientName.trim().split(/\s+/)[0] ?? "";
+  return `Hola ${first}, recibí tu mensaje sobre el turno. ¿Coordinamos otro horario?`;
+}

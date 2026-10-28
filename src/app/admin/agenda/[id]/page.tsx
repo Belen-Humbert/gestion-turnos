@@ -6,6 +6,7 @@ import { CancelForm, EventForm } from "@/components/agenda/event-form";
 import { eventTone } from "@/components/agenda/styles";
 import { getEvent } from "@/lib/agenda";
 import { dateToHm, dateToYmd, formatLong, minutesBetween } from "@/lib/dates";
+import { openRequestForEvent } from "@/lib/requests";
 import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Evento" };
@@ -18,6 +19,7 @@ export default async function EventPage({ params }: PageProps<"/admin/agenda/[id
   if (!event || event.cancelledAt) notFound();
 
   const date = dateToYmd(event.startsAt);
+  const request = await openRequestForEvent(event.id);
   const tone = eventTone(event);
   const isAppointment = event.kind === "appointment";
 
@@ -39,6 +41,14 @@ export default async function EventPage({ params }: PageProps<"/admin/agenda/[id
           </Link>
         ) : null}
       </header>
+
+      {request ? (
+        <section aria-label="Pedido de cambio" className="rounded-[18px] border-l-4 border-[#c8940a] bg-amarillo px-5 py-4">
+          <p className="text-xs font-extrabold uppercase tracking-wide text-[#5e3f00]">Pedido de cambio del paciente</p>
+          <p className="mt-1 whitespace-pre-wrap text-[15px] font-semibold">{request.message}</p>
+          <p className="mt-1 text-xs font-bold text-[#5e3f00]">Al cambiar el horario, el pedido se marca como atendido.</p>
+        </section>
+      ) : null}
 
       <EventForm
         defaults={{

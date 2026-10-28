@@ -2,7 +2,7 @@ import Link from "next/link";
 import { logout } from "@/app/actions";
 import { CalendarIcon } from "./icons";
 
-export type NavItem = { href: string; label: string; icon: React.ReactNode };
+export type NavItem = { href: string; label: string; icon: React.ReactNode; badge?: number };
 
 // Menú lateral en computadora y barra inferior en celular, como en los diseños.
 export function AppShell({
@@ -39,6 +39,7 @@ export function AppShell({
             >
               {item.icon}
               {item.label}
+              <Badge n={item.badge} />
             </Link>
           ))}
         </nav>
@@ -80,11 +81,28 @@ export function AppShell({
             href={item.href}
             className="flex min-h-12 min-w-[72px] flex-col items-center justify-center gap-0.5 text-xs font-bold text-suave"
           >
-            {item.icon}
+            <span className="relative">
+              {item.icon}
+              <Badge n={item.badge} floating />
+            </span>
             {item.label}
           </Link>
         ))}
       </nav>
     </div>
+  );
+}
+
+function Badge({ n, floating = false }: { n?: number; floating?: boolean }) {
+  if (!n) return null;
+  return (
+    <span
+      className={`rounded-full bg-error px-1.5 text-[11px] font-extrabold leading-[18px] text-white ${
+        floating ? "absolute -right-2.5 -top-1.5" : "ml-auto"
+      }`}
+      aria-label={`${n} pendientes`}
+    >
+      {n}
+    </span>
   );
 }

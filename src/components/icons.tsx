@@ -42,3 +42,10 @@ export const UserIcon = ({ size = 22 }: P) => (
     <path d="M4 21c0-4 3.5-6 8-6s8 2 8 6" />
   </svg>
 );
+
+export const InboxIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+    <path d="M3 13l2.5-7.5A2 2 0 0 1 7.4 4h9.2a2 2 0 0 1 1.9 1.5L21 13" />
+    <path d="M3 13v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5h-5l-1.5 2.5h-5L8 13H3z" />
+  </svg>
+);
