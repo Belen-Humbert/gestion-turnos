@@ -124,3 +124,8 @@ export function monthWeeks(ymd: string): string[][] {
   }
   return weeks;
 }
+
+// Si el instante todavía no pasó. Va en una función aparte para no llamar al reloj dentro de un componente.
+export function isUpcoming(d: Date): boolean {
+  return d.getTime() > Date.now();
+}

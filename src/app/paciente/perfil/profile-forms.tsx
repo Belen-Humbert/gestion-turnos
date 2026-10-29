@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Field, FormError, SubmitButton } from "@/components/form-bits";
+import { PushToggle } from "./push-toggle";
 import { changePassword, updatePhone, updateReminders, type ProfileFormState } from "./actions";
 
 function Ok({ state }: { state: ProfileFormState }) {
@@ -67,7 +68,7 @@ function Check({ name, label, hint, checked }: { name: string; label: string; hi
   );
 }
 
-export function RemindersForm({ reminders }: { reminders: Reminders }) {
+export function RemindersForm({ reminders, vapidPublicKey }: { reminders: Reminders; vapidPublicKey: string | null }) {
   const [state, action] = useActionState(updateReminders, undefined);
   return (
     <form action={action} className="flex flex-col gap-4">
@@ -77,9 +78,16 @@ export function RemindersForm({ reminders }: { reminders: Reminders }) {
         <Check
           name="remindPush"
           label="Notificación en el dispositivo"
-          hint="Se activa desde cada dispositivo cuando esté disponible."
+          hint="Se activa por separado en cada celular o computadora."
           checked={reminders.remindPush}
         />
+        {vapidPublicKey ? (
+          <PushToggle publicKey={vapidPublicKey} />
+        ) : (
+          <p className="ml-10 pb-2 text-[13px] font-semibold text-suave">
+            Las notificaciones en el dispositivo todavía no están habilitadas. Vas a recibir los avisos por email.
+          </p>
+        )}
       </fieldset>
       <fieldset className="flex flex-col">
         <legend className="mb-1 text-sm font-extrabold text-suave">¿Cuándo?</legend>

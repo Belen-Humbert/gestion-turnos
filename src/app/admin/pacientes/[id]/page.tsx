@@ -9,6 +9,7 @@ import { listPatientNotes } from "@/lib/notes";
 import { getPatient } from "@/lib/patients";
 import { requireUser } from "@/lib/session";
 import { NotesSection } from "./notes";
+import { WhatsAppReminder } from "@/components/whatsapp-reminder";
 import { ActiveToggle, EditPatientForm, InvitationSection } from "./patient-forms";
 
 export const metadata: Metadata = { title: "Paciente" };
@@ -67,10 +68,10 @@ export default async function PatientPage({ params }: PageProps<"/admin/paciente
           ) : (
             <ul className="flex flex-col gap-2">
               {upcoming.map((e) => (
-                <li key={e.id}>
+                <li key={e.id} className="flex flex-wrap gap-2">
                   <Link
                     href={`/admin/agenda/${e.id}`}
-                    className={`flex min-h-12 items-center justify-between gap-3 rounded-xl px-3.5 py-2 text-[15px] font-extrabold ${
+                    className={`flex min-h-12 min-w-0 flex-1 items-center justify-between gap-3 rounded-xl px-3.5 py-2 text-[15px] font-extrabold ${
                       e.confirmedAt ? "bg-verde-claro text-verde-oscuro" : "bg-amarillo text-[#5e3f00]"
                     }`}
                   >
@@ -79,6 +80,7 @@ export default async function PatientPage({ params }: PageProps<"/admin/paciente
                     </span>
                     <span className="text-xs">{e.confirmedAt ? "Confirmado" : "Sin confirmar"}</span>
                   </Link>
+                  <WhatsAppReminder phone={patient.phone} name={patient.name} startsAt={e.startsAt} location={e.location} />
                 </li>
               ))}
             </ul>

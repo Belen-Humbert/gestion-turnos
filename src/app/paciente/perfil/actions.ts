@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { sessions, users } from "@/db/schema";
+import { pushSubscriptions, sessions, users } from "@/db/schema";
+import { isAllowedPushEndpoint } from "@/lib/push-endpoint";
 import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from "@/lib/password";
 import { clearAttempts, isLimited, registerFailure } from "@/lib/rate-limit";
 import { requireUser, SESSION_COOKIE } from "@/lib/session";
@@ -81,4 +82,32 @@ export async function updateReminders(_prev: ProfileFormState, formData: FormDat
     .where(eq(users.id, user.id));
   revalidatePath("/paciente/perfil");
   return { ok: "Preferencias guardadas." };
+}
+
+const subSchema = z.object({
+  endpoint: z.string().max(1000).refine(isAllowedPushEndpoint),
+  keys: z.object({ p256dh: z.string().min(10).max(300), auth: z.string().min(10).max(300) }),
+});
+
+// Guarda el dispositivo del paciente para enviarle notificaciones. El endpoint es único:
+// si el mismo dispositivo cambia de cuenta, queda asociado a la cuenta actual.
+export async function savePushSubscription(raw: unknown): Promise<{ ok: boolean }> {
+  const user = await requireUser("patient");
+  const sub = subSchema.safeParse(raw);
+  if (!sub.success) return { ok: false };
+  await db
+    .insert(pushSubscriptions)
+    .values({ userId: user.id, endpoint: sub.data.endpoint, p256dh: sub.data.keys.p256dh, auth: sub.data.keys.auth })
+    .onConflictDoUpdate({
+      target: pushSubscriptions.endpoint,
+      set: { userId: user.id, p256dh: sub.data.keys.p256dh, auth: sub.data.keys.auth },
+    });
+  return { ok: true };
+}
+
+export async function removePushSubscription(endpoint: string): Promise<{ ok: boolean }> {
+  const user = await requireUser("patient");
+  if (typeof endpoint !== "string" || endpoint.length > 1000) return { ok: false };
+  await db.delete(pushSubscriptions).where(and(eq(pushSubscriptions.endpoint, endpoint), eq(pushSubscriptions.userId, user.id)));
+  return { ok: true };
 }
