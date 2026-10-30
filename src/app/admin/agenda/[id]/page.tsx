@@ -4,8 +4,12 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import { CancelForm, EventForm } from "@/components/agenda/event-form";
 import { eventTone } from "@/components/agenda/styles";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { WhatsAppReminder } from "@/components/whatsapp-reminder";
 import { getEvent } from "@/lib/agenda";
-import { dateToHm, dateToYmd, formatLong, minutesBetween } from "@/lib/dates";
+import { dateToHm, dateToYmd, formatLong, isUpcoming, minutesBetween } from "@/lib/dates";
 import { openRequestForEvent } from "@/lib/requests";
 import { requireUser } from "@/lib/session";
 
@@ -20,8 +24,13 @@ export default async function EventPage({ params }: PageProps<"/admin/agenda/[id
 
   const date = dateToYmd(event.startsAt);
   const request = await openRequestForEvent(event.id);
+  const [patientRow] = event.patientId
+    ? await db.select({ phone: users.phone }).from(users).where(eq(users.id, event.patientId)).limit(1)
+    : [];
+  const patientPhone = patientRow?.phone ?? null;
   const tone = eventTone(event);
   const isAppointment = event.kind === "appointment";
+  const isFuture = isUpcoming(event.startsAt);
 
   return (
     <div className="mx-auto flex max-w-xl flex-col gap-5">
@@ -36,17 +45,32 @@ export default async function EventPage({ params }: PageProps<"/admin/agenda/[id
           {formatLong(date)} · {dateToHm(event.startsAt)} a {dateToHm(event.endsAt)}
         </p>
         {isAppointment && event.patientId ? (
-          <Link href={`/admin/pacientes/${event.patientId}`} className="mt-1 inline-block text-sm font-extrabold underline">
-            Ver perfil del paciente
-          </Link>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <Link href={`/admin/pacientes/${event.patientId}`} className="text-sm font-extrabold underline">
+              Ver perfil del paciente
+            </Link>
+            {isFuture ? (
+              <WhatsAppReminder
+                phone={patientPhone}
+                name={event.title}
+                startsAt={event.startsAt}
+                location={event.location}
+              />
+            ) : null}
+          </div>
         ) : null}
       </header>
 
       {request ? (
-        <section aria-label="Pedido de cambio" className="rounded-[18px] border-l-4 border-[#c8940a] bg-amarillo px-5 py-4">
+        <section
+          aria-label="Pedido de cambio"
+          className="rounded-[18px] border-l-4 border-[#c8940a] bg-amarillo px-5 py-4"
+        >
           <p className="text-xs font-extrabold uppercase tracking-wide text-[#5e3f00]">Pedido de cambio del paciente</p>
           <p className="mt-1 whitespace-pre-wrap text-[15px] font-semibold">{request.message}</p>
-          <p className="mt-1 text-xs font-bold text-[#5e3f00]">Al cambiar el horario, el pedido se marca como atendido.</p>
+          <p className="mt-1 text-xs font-bold text-[#5e3f00]">
+            Al cambiar el horario, el pedido se marca como atendido.
+          </p>
         </section>
       ) : null}
 

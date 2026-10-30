@@ -87,7 +87,7 @@ export default async function Page({ searchParams }: PageProps<"/paciente/perfil
 
       {tab === "recordatorios" ? (
         <Card title="Recordatorios de turnos" hint="Elegí cómo y cuándo avisarte antes de cada turno.">
-          <RemindersForm reminders={me} />
+          <RemindersForm reminders={me} vapidPublicKey={process.env.VAPID_PUBLIC_KEY ?? null} />
         </Card>
       ) : null}
 

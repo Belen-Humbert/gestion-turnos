@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto";
 import { and, eq, gte, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
-import { events, users } from "@/db/schema";
+import { events, reminderLog, users } from "@/db/schema";
 import { findConflict, getEvent } from "@/lib/agenda";
 import {
   addDays,
@@ -129,7 +129,11 @@ export async function saveEvent(_prev: EventFormState, formData: FormData): Prom
       throw e;
     }
     // Si se reprogramó, el pedido de cambio del paciente queda atendido.
-    if (startsAt.getTime() !== current.startsAt.getTime()) await resolveRequestsForEvents([idRaw]);
+    if (startsAt.getTime() !== current.startsAt.getTime()) {
+      await resolveRequestsForEvents([idRaw]);
+      // El nuevo horario tiene que recibir sus propios recordatorios.
+      await db.delete(reminderLog).where(eq(reminderLog.eventId, idRaw));
+    }
     redirect(`/admin?fecha=${date}`);
   }
 

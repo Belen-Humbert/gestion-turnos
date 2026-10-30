@@ -10,7 +10,7 @@ Hecha por [Sushi Software Studio](https://sushisoftwarestudio.com.ar).
 - [x] Paso 1: base del proyecto, PWA, base de datos, login por invitación y roles (administradora / paciente).
 - [~] Paso 2: pacientes ✅ (importación CSV pendiente) · agenda ✅ (citas, otros eventos, repetición semanal, editar y cancelar, sin superposición) · notas privadas en el perfil del paciente ✅ (solo el administrador; incluye las notas de las citas del calendario).
 - [x] Paso 3: vista del paciente ✅ (ver turno, confirmar asistencia, pedir cambio por mensaje) y panel «Pedidos» del administrador con contador.
-- [ ] Paso 4: recordatorios (push + email 24 h y 2 h antes) y botón de WhatsApp manual.
+- [x] Paso 4: recordatorios (push + email 24 h y 2 h antes) y botón de WhatsApp manual.
 - [ ] Paso 5: foro con archivos, comentarios y moderación.
 
 ## Desarrollo local
@@ -67,7 +67,20 @@ npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de 
 
 ### Perfil y preferencias del paciente
 - El perfil se divide en pestañas (Mis datos · Recordatorios · Contraseña, `?seccion=`). El paciente ve su nombre y email (solo lectura: los gestiona el administrador) y puede editar su celular y cambiar su contraseña. Cambiarla cierra las sesiones de otros dispositivos y limita los intentos fallidos.
-- Preferencias de recordatorio (canal: email / notificación en el dispositivo; momento: 24 h / 2 h antes). Se guardan en `users` y las usará el Paso 4. Los recordatorios llevan solo día, hora y lugar.
+- Preferencias de recordatorio (canal: email / notificación en el dispositivo; momento: 24 h / 2 h antes). Se guardan en `users` y las usa el envío de recordatorios (ver abajo). Los recordatorios llevan solo día, hora y lugar.
+
+## Recordatorios (Paso 4)
+- **Cuándo:** 24 h y 2 h antes de cada cita, según las preferencias del paciente (Perfil → Recordatorios). Si la cita se agenda con menos de 24 h de anticipación no se manda el de 24 h. Si se reprograma, el nuevo horario recibe sus propios avisos. Un aviso que se pasó de hora (más de 3 h el de 24 h, 1 h el de 2 h) se descarta.
+- **Texto neutro:** solo día, hora y lugar; sin motivo ni datos clínicos.
+- **Canales:** email (SMTP, cualquier proveedor) y notificación push en cada dispositivo que el paciente active. Sin SMTP o sin claves VAPID, esos canales se simulan por consola y no se marcan como enviados.
+- **WhatsApp:** nunca es automático. Ana tiene un botón «Recordar por WhatsApp» en la cita y en el perfil del paciente que abre el chat con el mensaje armado.
+- **Quién lo dispara:** el proceso es idempotente (tabla `reminder_log`), así que se puede correr cada 10 minutos sin duplicar avisos:
+  - Local: `npm run reminders`.
+  - Producción: un programador externo llama cada ~10 min a `POST /api/cron/reminders` con `Authorization: Bearer $CRON_SECRET` (cron del hosting, GitHub Actions, cron-job.org).
+- **Configuración** (ver `.env.example`): `SMTP_*` y `MAIL_FROM`; `npm run vapid` genera las claves de push (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`); `CRON_SECRET` (mínimo 16 caracteres).
+- En iPhone/iPad las notificaciones push solo funcionan con la app agregada a la pantalla de inicio.
+- **Seguridad:** el cron exige `CRON_SECRET`; las direcciones de push solo se aceptan si pertenecen a los servicios de los navegadores (Chrome/Edge, Firefox, Safari, Windows), para que nadie use al servidor para hacer pedidos a direcciones internas; los registros no imprimen emails de pacientes.
+- **Pruebas:** `npm test` (las de base de datos corren si `DATABASE_URL` está definida).
 
 ## Pendientes conocidos
 

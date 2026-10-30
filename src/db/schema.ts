@@ -141,3 +141,39 @@ export const changeRequests = pgTable(
     uniqueIndex("change_requests_one_open_idx").on(t.eventId).where(sql`${t.resolvedAt} is null`),
   ],
 );
+
+// Dispositivos del paciente que activaron las notificaciones (Web Push).
+export const pushSubscriptions = pgTable(
+  "push_subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    endpoint: text("endpoint").notNull().unique(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("push_subscriptions_user_idx").on(t.userId)],
+);
+
+// Un recordatorio por cita, momento y canal: la restricción única evita enviarlo dos veces
+// aunque el proceso corra varias veces o en paralelo.
+export const reminderLog = pgTable(
+  "reminder_log",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    eventId: uuid("event_id")
+      .notNull()
+      .references(() => events.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    channel: text("channel").notNull(),
+    sentAt: timestamp("sent_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("reminder_log_unique_idx").on(t.eventId, t.kind, t.channel),
+    check("reminder_log_kind_ok", sql`${t.kind} in ('24h', '2h')`),
+    check("reminder_log_channel_ok", sql`${t.channel} in ('email', 'push')`),
+  ],
+);
