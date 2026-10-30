@@ -1,25 +1,34 @@
-import { dateToHm, dateToYmd, formatLong, todayYmd } from "./dates";
-import type { ReminderKind } from "./reminder-rules";
+import { addDays, dateToHm, dateToYmd, formatLong, todayYmd } from "./dates";
 
 // Texto neutro: solo día, hora y lugar. Sin datos clínicos ni mención al motivo del turno,
 // porque un aviso puede verse en una pantalla bloqueada o en una bandeja compartida.
 const firstName = (name: string) => name.trim().split(/\s+/)[0] ?? "";
 
-export function whenLabel(startsAt: Date, kind: ReminderKind): string {
-  const day = formatLong(dateToYmd(startsAt));
+// El día se dice según la fecha real y el momento del envío, no según el tipo de aviso: un aviso
+// "de 24 h" que sale después de medianoche es para hoy, y uno de "2 h" nunca debería decir "mañana".
+function dayWord(startsAt: Date, now: Date): string {
+  const ymd = dateToYmd(startsAt);
+  const today = todayYmd(now);
+  if (ymd === today) return "hoy";
+  if (ymd === addDays(today, 1)) return "mañana";
+  return `el ${formatLong(ymd)}`;
+}
+
+export function whenLabel(startsAt: Date, now: Date): string {
+  const word = dayWord(startsAt, now);
   const hm = dateToHm(startsAt);
-  return kind === "2h" ? `hoy a las ${hm}` : `mañana (${day}) a las ${hm}`;
+  return word === "mañana" ? `mañana (${formatLong(dateToYmd(startsAt))}) a las ${hm}` : `${word} a las ${hm}`;
 }
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
-export type ReminderInput = { name: string; startsAt: Date; location: string | null; kind: ReminderKind };
+export type ReminderInput = { name: string; startsAt: Date; location: string | null; now: Date };
 
 export function emailContent(input: ReminderInput & { appUrl: string }) {
-  const when = whenLabel(input.startsAt, input.kind);
+  const when = whenLabel(input.startsAt, input.now);
   const where = input.location ? ` Lugar: ${input.location}.` : "";
   const link = `${input.appUrl.replace(/\/$/, "")}/paciente`;
-  const subject = `Recordatorio de turno: ${input.kind === "2h" ? "hoy" : "mañana"} a las ${dateToHm(input.startsAt)}`;
+  const subject = `Recordatorio de turno: ${dayWord(input.startsAt, input.now)} a las ${dateToHm(input.startsAt)}`;
   const text =
     `Hola ${firstName(input.name)},\n\n` +
     `Te recordamos tu turno: ${when}.${where}\n\n` +
@@ -34,7 +43,8 @@ export function emailContent(input: ReminderInput & { appUrl: string }) {
 }
 
 export function pushContent(input: ReminderInput) {
-  const day = input.kind === "2h" ? "Hoy" : "Mañana";
+  const word = dayWord(input.startsAt, input.now);
+  const day = word.charAt(0).toUpperCase() + word.slice(1);
   const where = input.location ? ` · ${input.location}` : "";
   return { title: "Recordatorio de turno", body: `${day} a las ${dateToHm(input.startsAt)}${where}`, url: "/paciente" };
 }

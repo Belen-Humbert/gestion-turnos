@@ -53,7 +53,7 @@ export async function runReminders(opts: { now?: Date; senders?: Partial<Senders
     if (wanted.length === 0) continue;
     summary.candidates++;
     for (const kind of wanted) {
-      const input = { name: r.name, startsAt: r.startsAt, location: r.location, kind };
+      const input = { name: r.name, startsAt: r.startsAt, location: r.location, now };
       if (r.remindEmail && r.email) {
         await deliver(r.eventId, kind, "email", summary, async () => {
           return senders.email({ to: r.email, ...emailContent({ ...input, appUrl }) });
