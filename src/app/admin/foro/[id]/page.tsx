@@ -9,7 +9,7 @@ import { MarkSeen } from "@/components/forum/mark-seen";
 import { formatDate } from "@/lib/dates";
 import { getPost, listAttachments, listComments } from "@/lib/forum/queries";
 import { requireUser } from "@/lib/session";
-import { adminComment, deleteComment, deletePost, markCommentsSeen, setCommentHidden, setCommentsOpen } from "../actions";
+import { adminComment, toggleHeart, deleteComment, deletePost, markCommentsSeen, setCommentHidden, setCommentsOpen } from "../actions";
 
 export const metadata: Metadata = { title: "Publicación" };
 
@@ -75,6 +75,7 @@ export default async function Page({ params, searchParams }: PageProps<"/admin/f
         viewer="admin"
         commentsOpen={post.commentsOpen}
         commentAction={adminComment}
+        heart={toggleHeart}
         moderation={{ setHidden: setCommentHidden, remove: deleteComment }}
       />
 

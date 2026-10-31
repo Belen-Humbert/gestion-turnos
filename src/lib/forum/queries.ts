@@ -1,5 +1,6 @@
 import "server-only";
 import { and, asc, count, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { db } from "@/db";
 import { forumAttachments, forumComments, forumPosts, users } from "@/db/schema";
 
@@ -73,6 +74,11 @@ export type CommentView = {
   createdAt: Date;
   hidden: boolean;
   isNew: boolean;
+  parentId: string | null;
+  hearted: boolean;
+  // Solo para pacientes: Ana respondió o le dio corazón y todavía no lo vio.
+  heartNew: boolean;
+  replyNew: boolean;
 };
 
 const firstName = (full: string) => full.trim().split(/\s+/)[0] ?? "";
@@ -90,12 +96,17 @@ export async function listComments(postId: string, viewer: { id: string; role: "
       createdAt: forumComments.createdAt,
       hiddenAt: forumComments.hiddenAt,
       adminSeenAt: forumComments.adminSeenAt,
+      parentId: forumComments.parentId,
+      adminHeartedAt: forumComments.adminHeartedAt,
+      ownerSeenAt: forumComments.ownerSeenAt,
     })
     .from(forumComments)
     .innerJoin(users, eq(users.id, forumComments.userId))
     .where(viewer.role === "admin" ? eq(forumComments.postId, postId) : and(eq(forumComments.postId, postId), isNull(forumComments.hiddenAt)))
     .orderBy(asc(forumComments.createdAt));
-  return rows.map((r) => ({
+  // Si un comentario está oculto para los pacientes, sus respuestas también.
+  const shown = viewer.role === "admin" ? rows : rows.filter((r) => !r.parentId || rows.some((x) => x.id === r.parentId));
+  return shown.map((r) => ({
     id: r.id,
     author: viewer.role === "admin" ? r.name : firstName(r.name),
     isAdmin: r.role === "admin",
@@ -104,6 +115,15 @@ export async function listComments(postId: string, viewer: { id: string; role: "
     createdAt: r.createdAt,
     hidden: r.hiddenAt !== null,
     // "Nuevo" es un aviso solo para la administradora; los pacientes nunca lo ven.
+    parentId: r.parentId,
+    hearted: r.adminHeartedAt !== null,
+    heartNew: viewer.role === "patient" && r.userId === viewer.id && r.adminHeartedAt !== null && r.ownerSeenAt === null,
+    replyNew:
+      viewer.role === "patient" &&
+      r.role === "admin" &&
+      r.ownerSeenAt === null &&
+      r.parentId !== null &&
+      rows.some((x) => x.id === r.parentId && x.userId === viewer.id),
     isNew: viewer.role === "admin" && r.role === "patient" && r.hiddenAt === null && r.adminSeenAt === null,
   }));
 }
@@ -137,4 +157,21 @@ export async function forumStorageUsage(): Promise<{ files: number; bytes: numbe
     .from(forumAttachments)
     .where(eq(forumAttachments.kind, "file"));
   return { files: row?.files ?? 0, bytes: Number(row?.bytes ?? 0) };
+}
+
+// Novedades para una paciente en el foro: corazones de Ana en sus comentarios y respuestas de Ana en sus hilos
+// que todavía no vio. Alimenta el aviso del menú.
+export async function countPatientForumNews(userId: string): Promise<number> {
+  const root = alias(forumComments, "root");
+  const [hearts] = await db
+    .select({ n: count() })
+    .from(forumComments)
+    .where(and(eq(forumComments.userId, userId), isNull(forumComments.hiddenAt), isNotNull(forumComments.adminHeartedAt), isNull(forumComments.ownerSeenAt)));
+  const [replies] = await db
+    .select({ n: count() })
+    .from(forumComments)
+    .innerJoin(root, eq(root.id, forumComments.parentId))
+    .innerJoin(users, eq(users.id, forumComments.userId))
+    .where(and(eq(root.userId, userId), isNull(root.hiddenAt), eq(users.role, "admin"), isNull(forumComments.hiddenAt), isNull(forumComments.ownerSeenAt)));
+  return (hearts?.n ?? 0) + (replies?.n ?? 0);
 }

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   check,
   index,
@@ -245,6 +246,12 @@ export const forumComments = pgTable(
     hiddenAt: timestamp("hidden_at", { withTimezone: true }),
     // Cuando la administradora lo vio; sirve para el aviso de comentarios nuevos.
     adminSeenAt: timestamp("admin_seen_at", { withTimezone: true }),
+    // Respuesta a otro comentario (un solo nivel: responder a una respuesta cuelga del comentario original).
+    parentId: uuid("parent_id").references((): AnyPgColumn => forumComments.id, { onDelete: "cascade" }),
+    // "Me gusta" (corazón) de la administradora.
+    adminHeartedAt: timestamp("admin_hearted_at", { withTimezone: true }),
+    // Cuando la autora del comentario vio el corazón de Ana (o su respuesta, si esta fila es una respuesta de Ana).
+    ownerSeenAt: timestamp("owner_seen_at", { withTimezone: true }),
   },
   (t) => [
     index("forum_comments_post_idx").on(t.postId, t.createdAt),

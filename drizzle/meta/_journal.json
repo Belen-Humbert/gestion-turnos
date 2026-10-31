@@ -64,6 +64,20 @@
       "when": 1793469683072,
       "tag": "0008_good_arclight",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793471300779,
+      "tag": "0009_forum_respuestas_corazon",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793472119298,
+      "tag": "0010_forum_avisos_paciente",
+      "breakpoints": true
     }
   ]
 }
