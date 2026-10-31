@@ -7,7 +7,8 @@ import { CommentsSection } from "@/components/forum/comments";
 import { formatDate } from "@/lib/dates";
 import { getPost, listAttachments, listComments } from "@/lib/forum/queries";
 import { requireUser } from "@/lib/session";
-import { addComment, deleteOwnComment } from "../actions";
+import { MarkSeen } from "@/components/forum/mark-seen";
+import { addComment, deleteOwnComment, markMineSeen } from "../actions";
 
 export const metadata: Metadata = { title: "Foro" };
 
@@ -28,6 +29,7 @@ export default async function Page({ params }: PageProps<"/paciente/foro/[id]">)
       </header>
       {post.body ? <p className="whitespace-pre-wrap break-words rounded-[22px] border border-borde bg-white p-6 text-[15px] font-semibold leading-relaxed">{post.body}</p> : null}
       <AttachmentList attachments={attachments} />
+      <MarkSeen action={markMineSeen} postId={id} pending={comments.some((c) => c.heartNew || c.replyNew)} />
       <CommentsSection postId={id} comments={comments} viewer="patient" commentsOpen={post.commentsOpen} commentAction={addComment} deleteOwn={deleteOwnComment} />
     </div>
   );

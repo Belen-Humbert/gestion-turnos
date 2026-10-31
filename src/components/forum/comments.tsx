@@ -51,6 +51,7 @@ export function CommentsSection({
           {c.isAdmin ? <span className="rounded-full bg-verde-claro px-2 py-0.5 text-[11px] font-extrabold text-verde-oscuro">Administradora</span> : null}
           {c.hidden ? <span className="rounded-full bg-amarillo px-2 py-0.5 text-[11px] font-extrabold text-[#5e3f00]">Oculto para los pacientes</span> : null}
           {c.isNew ? <span className="rounded-full bg-error px-2 py-0.5 text-[11px] font-extrabold text-white">Nuevo</span> : null}
+          {c.replyNew ? <span data-new-reply className="rounded-full bg-error px-2 py-0.5 text-[11px] font-extrabold text-white">Nueva</span> : null}
           <span className="text-xs font-bold text-suave">{formatDateTime(c.createdAt)}</span>
         </div>
         <p className="whitespace-pre-wrap break-words text-[15px] font-semibold leading-snug">{c.body}</p>
@@ -65,7 +66,7 @@ export function CommentsSection({
             </form>
           ) : null}
           {!heart && c.hearted ? (
-            <span data-heart className="rounded-full bg-[#fbe9e9] px-2.5 py-0.5 text-xs font-extrabold text-error">♥ Le gustó a {adminName}</span>
+            <span data-heart className="rounded-full bg-[#fbe9e9] px-2.5 py-0.5 text-xs font-extrabold text-error">♥ Le gustó a {adminName}{c.heartNew ? " · nuevo" : ""}</span>
           ) : null}
           {moderation ? (
             <>

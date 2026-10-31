@@ -203,7 +203,7 @@ export async function toggleHeart(formData: FormData) {
   const on = formData.get("heart") === "1";
   const [row] = await db
     .update(forumComments)
-    .set({ adminHeartedAt: on ? new Date() : null })
+    .set({ adminHeartedAt: on ? new Date() : null, ownerSeenAt: null })
     .where(eq(forumComments.id, id.data))
     .returning({ postId: forumComments.postId });
   if (!row) return;

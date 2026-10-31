@@ -250,6 +250,8 @@ export const forumComments = pgTable(
     parentId: uuid("parent_id").references((): AnyPgColumn => forumComments.id, { onDelete: "cascade" }),
     // "Me gusta" (corazón) de la administradora.
     adminHeartedAt: timestamp("admin_hearted_at", { withTimezone: true }),
+    // Cuando la autora del comentario vio el corazón de Ana (o su respuesta, si esta fila es una respuesta de Ana).
+    ownerSeenAt: timestamp("owner_seen_at", { withTimezone: true }),
   },
   (t) => [
     index("forum_comments_post_idx").on(t.postId, t.createdAt),
