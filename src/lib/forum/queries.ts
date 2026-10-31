@@ -73,6 +73,8 @@ export type CommentView = {
   createdAt: Date;
   hidden: boolean;
   isNew: boolean;
+  parentId: string | null;
+  hearted: boolean;
 };
 
 const firstName = (full: string) => full.trim().split(/\s+/)[0] ?? "";
@@ -90,12 +92,16 @@ export async function listComments(postId: string, viewer: { id: string; role: "
       createdAt: forumComments.createdAt,
       hiddenAt: forumComments.hiddenAt,
       adminSeenAt: forumComments.adminSeenAt,
+      parentId: forumComments.parentId,
+      adminHeartedAt: forumComments.adminHeartedAt,
     })
     .from(forumComments)
     .innerJoin(users, eq(users.id, forumComments.userId))
     .where(viewer.role === "admin" ? eq(forumComments.postId, postId) : and(eq(forumComments.postId, postId), isNull(forumComments.hiddenAt)))
     .orderBy(asc(forumComments.createdAt));
-  return rows.map((r) => ({
+  // Si un comentario está oculto para los pacientes, sus respuestas también.
+  const shown = viewer.role === "admin" ? rows : rows.filter((r) => !r.parentId || rows.some((x) => x.id === r.parentId));
+  return shown.map((r) => ({
     id: r.id,
     author: viewer.role === "admin" ? r.name : firstName(r.name),
     isAdmin: r.role === "admin",
@@ -104,6 +110,8 @@ export async function listComments(postId: string, viewer: { id: string; role: "
     createdAt: r.createdAt,
     hidden: r.hiddenAt !== null,
     // "Nuevo" es un aviso solo para la administradora; los pacientes nunca lo ven.
+    parentId: r.parentId,
+    hearted: r.adminHeartedAt !== null,
     isNew: viewer.role === "admin" && r.role === "patient" && r.hiddenAt === null && r.adminSeenAt === null,
   }));
 }

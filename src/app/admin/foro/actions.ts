@@ -189,11 +189,26 @@ export async function adminComment(_prev: ForumFormState, formData: FormData): P
   const user = await requireUser("admin");
   const postId = formData.get("postId");
   const raw = typeof formData.get("body") === "string" ? String(formData.get("body")) : "";
-  const res = await createComment(user, postId, raw);
+  const res = await createComment(user, postId, raw, formData.get("parentId"));
   if ("error" in res) return { error: res.error, body: raw };
   revalidatePath(`/admin/foro/${String(postId)}`);
   revalidatePath(`/paciente/foro/${String(postId)}`);
   return { ok: "Comentario publicado." };
+}
+
+export async function toggleHeart(formData: FormData) {
+  await requireUser("admin");
+  const id = z.string().uuid().safeParse(formData.get("commentId"));
+  if (!id.success) return;
+  const on = formData.get("heart") === "1";
+  const [row] = await db
+    .update(forumComments)
+    .set({ adminHeartedAt: on ? new Date() : null })
+    .where(eq(forumComments.id, id.data))
+    .returning({ postId: forumComments.postId });
+  if (!row) return;
+  revalidatePath(`/admin/foro/${row.postId}`);
+  revalidatePath(`/paciente/foro/${row.postId}`);
 }
 
 export async function setCommentHidden(formData: FormData) {

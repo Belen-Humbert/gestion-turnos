@@ -14,7 +14,7 @@ export async function addComment(_prev: CommentFormState, formData: FormData): P
   const user = await requireUser("patient");
   const postId = formData.get("postId");
   const raw = typeof formData.get("body") === "string" ? String(formData.get("body")) : "";
-  const res = await createComment(user, postId, raw);
+  const res = await createComment(user, postId, raw, formData.get("parentId"));
   if ("error" in res) return { error: res.error, body: raw };
   revalidatePath(`/paciente/foro/${String(postId)}`);
   revalidatePath("/admin", "layout");

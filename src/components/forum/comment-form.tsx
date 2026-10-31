@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import { FormError, SubmitButton } from "@/components/form-bits";
 import { COMMENT_MAX } from "@/lib/forum/limits";
 
@@ -10,20 +10,29 @@ export function CommentForm({
   action,
   postId,
   hint,
+  parentId,
+  onDone,
 }: {
   action: (prev: State, formData: FormData) => Promise<State>;
   postId: string;
   hint?: string;
+  parentId?: string;
+  onDone?: () => void;
 }) {
   const [state, formAction] = useActionState(action, undefined);
+  useEffect(() => {
+    if (state?.ok && onDone) onDone();
+  }, [state, onDone]);
+  const fieldId = `comment-${parentId ?? postId}`;
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="postId" value={postId} />
-      <label htmlFor={`comment-${postId}`} className="text-sm font-extrabold">
-        Tu comentario
+      {parentId ? <input type="hidden" name="parentId" value={parentId} /> : null}
+      <label htmlFor={fieldId} className="text-sm font-extrabold">
+        {parentId ? "Tu respuesta" : "Tu comentario"}
       </label>
       <textarea
-        id={`comment-${postId}`}
+        id={fieldId}
         name="body"
         rows={3}
         required
@@ -38,7 +47,7 @@ export function CommentForm({
           {state.ok}
         </p>
       ) : null}
-      <SubmitButton>Publicar comentario</SubmitButton>
+      <SubmitButton>{parentId ? "Responder" : "Publicar comentario"}</SubmitButton>
     </form>
   );
 }
