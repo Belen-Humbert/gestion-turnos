@@ -39,6 +39,7 @@ export default async function Page({ searchParams }: PageProps<"/paciente/perfil
       remindPush: users.remindPush,
       remind24h: users.remind24h,
       remind2h: users.remind2h,
+      notifyForum: users.notifyForum,
     })
     .from(users)
     .where(eq(users.id, session.id))

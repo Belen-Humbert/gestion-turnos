@@ -3,6 +3,7 @@ import {
   boolean,
   check,
   index,
+  integer,
   pgEnum,
   pgTable,
   text,
@@ -30,6 +31,8 @@ export const users = pgTable("users", {
   remindPush: boolean("remind_push").notNull().default(true),
   remind24h: boolean("remind_24h").notNull().default(true),
   remind2h: boolean("remind_2h").notNull().default(true),
+  // Si quiere que le avisen cuando se publica material nuevo en el foro (por los canales de arriba).
+  notifyForum: boolean("notify_forum").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -175,5 +178,76 @@ export const reminderLog = pgTable(
     uniqueIndex("reminder_log_unique_idx").on(t.eventId, t.kind, t.channel),
     check("reminder_log_kind_ok", sql`${t.kind} in ('24h', '2h')`),
     check("reminder_log_channel_ok", sql`${t.channel} in ('email', 'push')`),
+  ],
+);
+
+// --- Foro -------------------------------------------------------------------------------------
+// Solo la administradora publica. Los pacientes leen y comentan.
+export const forumPosts = pgTable(
+  "forum_posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    body: text("body").notNull().default(""),
+    // Si es false, los pacientes no pueden agregar comentarios nuevos.
+    commentsOpen: boolean("comments_open").notNull().default(true),
+    // Última vez que se avisó a los pacientes de esta publicación (null = nunca).
+    notifiedAt: timestamp("notified_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("forum_posts_created_idx").on(t.createdAt)],
+);
+
+// Un adjunto es un archivo subido al almacenamiento (audio, documento, imagen) o un enlace externo.
+export const forumAttachments = pgTable(
+  "forum_attachments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => forumPosts.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(),
+    // Texto que ve el paciente: el nombre del archivo o el título del enlace.
+    label: text("label").notNull(),
+    url: text("url"),
+    storageKey: text("storage_key").unique(),
+    fileName: text("file_name"),
+    contentType: text("content_type"),
+    sizeBytes: integer("size_bytes"),
+    position: integer("position").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("forum_attachments_post_idx").on(t.postId, t.position),
+    check("forum_attachments_kind_ok", sql`${t.kind} in ('file', 'link')`),
+    check(
+      "forum_attachments_shape",
+      sql`(${t.kind} = 'file' and ${t.storageKey} is not null and ${t.contentType} is not null) or (${t.kind} = 'link' and ${t.url} is not null)`,
+    ),
+  ],
+);
+
+// Comentarios de pacientes (y respuestas de la administradora). Ocultar es la moderación: el
+// comentario deja de verse para los pacientes pero la administradora lo conserva y lo puede restaurar.
+export const forumComments = pgTable(
+  "forum_comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => forumPosts.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    hiddenAt: timestamp("hidden_at", { withTimezone: true }),
+    // Cuando la administradora lo vio; sirve para el aviso de comentarios nuevos.
+    adminSeenAt: timestamp("admin_seen_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("forum_comments_post_idx").on(t.postId, t.createdAt),
+    index("forum_comments_user_idx").on(t.userId, t.createdAt),
   ],
 );

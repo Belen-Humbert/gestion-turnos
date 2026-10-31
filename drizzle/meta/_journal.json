@@ -50,6 +50,20 @@
       "when": 1793219665917,
       "tag": "0006_overconfident_mercury",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793426833676,
+      "tag": "0007_lucky_nighthawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793469683072,
+      "tag": "0008_good_arclight",
+      "breakpoints": true
     }
   ]
 }

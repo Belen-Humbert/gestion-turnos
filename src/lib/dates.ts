@@ -129,3 +129,8 @@ export function monthWeeks(ymd: string): string[][] {
 export function isUpcoming(d: Date): boolean {
   return d.getTime() > Date.now();
 }
+
+const dateTimeFmt = new Intl.DateTimeFormat("es-AR", { timeZone: TZ, day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
+const dateFmt = new Intl.DateTimeFormat("es-AR", { timeZone: TZ, day: "numeric", month: "long", year: "numeric" });
+export const formatDateTime = (d: Date) => dateTimeFmt.format(d);
+export const formatDate = (d: Date) => dateFmt.format(d);
