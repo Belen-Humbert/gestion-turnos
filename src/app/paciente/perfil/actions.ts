@@ -78,6 +78,7 @@ export async function updateReminders(_prev: ProfileFormState, formData: FormDat
       remindPush: on("remindPush"),
       remind24h: on("remind24h"),
       remind2h: on("remind2h"),
+      notifyForum: on("notifyForum"),
     })
     .where(eq(users.id, user.id));
   revalidatePath("/paciente/perfil");

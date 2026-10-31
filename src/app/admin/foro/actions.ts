@@ -3,10 +3,12 @@
 import { randomUUID } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { forumAttachments, forumComments, forumPosts } from "@/db/schema";
+import { notifyPatientsOfPost } from "@/lib/forum/notify";
 import { createComment } from "@/lib/forum/comments";
 import { classifyFile, displayFileName, isValidStorageKey, maxFileBytes, normalizeLink, validateUpload, type UploadCheck } from "@/lib/forum/files";
 import { requireUser } from "@/lib/session";
@@ -140,6 +142,18 @@ export async function savePost(_prev: ForumFormState, formData: FormData): Promi
 
   revalidatePath("/admin/foro");
   revalidatePath("/paciente/foro");
+  // Aviso opcional a los pacientes (la casilla viene sin tildar). Un fallo del aviso nunca pierde la publicación.
+  if (formData.get("notify") === "1") {
+    try {
+      const r = await notifyPatientsOfPost(postId);
+      const real = r.email + r.push;
+      const state = r.skipped ? "dup" : real > 0 ? "ok" : r.simulated > 0 ? "sim" : r.errors > 0 ? "err" : "nadie";
+      redirect(`/admin/foro/${postId}?aviso=${state}&n=${r.recipients}`);
+    } catch (e) {
+      if (isRedirectError(e)) throw e;
+      redirect(`/admin/foro/${postId}?aviso=err&n=0`);
+    }
+  }
   redirect(`/admin/foro/${postId}`);
 }
 

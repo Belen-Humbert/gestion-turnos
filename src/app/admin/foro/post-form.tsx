@@ -41,7 +41,7 @@ export function PostForm({
   initial,
 }: {
   maxBytes: number;
-  initial?: { id: string; title: string; body: string; attachments: Existing[] };
+  initial?: { id: string; title: string; body: string; attachments: Existing[]; notifiedAt?: string | null };
 }) {
   const [state, action] = useActionState(savePost, undefined);
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -215,6 +215,19 @@ export function PostForm({
             + Agregar enlace
           </button>
         </div>
+      </section>
+
+      <section className="flex flex-col gap-1 rounded-[22px] border border-borde bg-white p-6" aria-label="Aviso a los pacientes">
+        <label className="flex cursor-pointer items-start gap-3">
+          <input type="checkbox" name="notify" value="1" className="mt-0.5 h-6 w-6 shrink-0 accent-verde" />
+          <span>
+            <span className="block text-[15px] font-extrabold">Avisar a los pacientes que hay material nuevo</span>
+            <span className="block text-[13px] font-semibold text-suave">
+              Les llega un aviso neutro (sin el título ni el contenido) por email o notificación, según lo que haya elegido cada paciente.
+            </span>
+          </span>
+        </label>
+        {initial?.notifiedAt ? <p className="ml-9 text-[13px] font-bold text-suave">Ya avisaste el {initial.notifiedAt}.</p> : null}
       </section>
 
       <FormError message={state?.error} />

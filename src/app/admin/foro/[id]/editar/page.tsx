@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { formatDate } from "@/lib/dates";
 import { formatBytes, linkHost, maxFileBytes } from "@/lib/forum/files";
 import { getPost, listAttachments } from "@/lib/forum/queries";
 import { requireUser } from "@/lib/session";
@@ -26,6 +27,7 @@ export default async function Page({ params }: PageProps<"/admin/foro/[id]/edita
           id,
           title: post.title,
           body: post.body,
+          notifiedAt: post.notifiedAt ? formatDate(post.notifiedAt) : null,
           attachments: attachments.map((a) => ({
             id: a.id,
             label: a.label,

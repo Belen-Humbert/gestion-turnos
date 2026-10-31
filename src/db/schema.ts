@@ -31,6 +31,8 @@ export const users = pgTable("users", {
   remindPush: boolean("remind_push").notNull().default(true),
   remind24h: boolean("remind_24h").notNull().default(true),
   remind2h: boolean("remind_2h").notNull().default(true),
+  // Si quiere que le avisen cuando se publica material nuevo en el foro (por los canales de arriba).
+  notifyForum: boolean("notify_forum").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -189,6 +191,8 @@ export const forumPosts = pgTable(
     body: text("body").notNull().default(""),
     // Si es false, los pacientes no pueden agregar comentarios nuevos.
     commentsOpen: boolean("comments_open").notNull().default(true),
+    // Última vez que se avisó a los pacientes de esta publicación (null = nunca).
+    notifiedAt: timestamp("notified_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

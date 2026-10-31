@@ -54,7 +54,7 @@ export function PasswordForm() {
   );
 }
 
-export type Reminders = { remindEmail: boolean; remindPush: boolean; remind24h: boolean; remind2h: boolean };
+export type Reminders = { remindEmail: boolean; remindPush: boolean; remind24h: boolean; remind2h: boolean; notifyForum: boolean };
 
 function Check({ name, label, hint, checked }: { name: string; label: string; hint?: string; checked: boolean }) {
   return (
@@ -97,6 +97,15 @@ export function RemindersForm({ reminders, vapidPublicKey }: { reminders: Remind
       <p className="text-[13px] font-semibold text-suave">
         Los recordatorios solo indican día, hora y lugar del turno.
       </p>
+      <fieldset className="flex flex-col">
+        <legend className="mb-1 text-sm font-extrabold text-suave">Foro</legend>
+        <Check
+          name="notifyForum"
+          label="Avisarme cuando haya material nuevo en el foro"
+          hint="Por los mismos medios que elegiste arriba. El aviso no dice de qué se trata."
+          checked={reminders.notifyForum}
+        />
+      </fieldset>
       <Ok state={state} />
       <SubmitButton>Guardar preferencias</SubmitButton>
     </form>

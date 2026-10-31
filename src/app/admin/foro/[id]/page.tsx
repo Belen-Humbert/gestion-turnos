@@ -13,9 +13,21 @@ import { adminComment, deleteComment, deletePost, markCommentsSeen, setCommentHi
 
 export const metadata: Metadata = { title: "Publicación" };
 
-export default async function Page({ params }: PageProps<"/admin/foro/[id]">) {
+const AVISOS: Record<string, { tone: "ok" | "warn"; text: (n: number) => string }> = {
+  ok: { tone: "ok", text: (n) => `Aviso enviado a ${n} ${n === 1 ? "paciente" : "pacientes"}.` },
+  sim: { tone: "warn", text: () => "No se envió ningún aviso real: falta configurar el email o las notificaciones del servidor." },
+  nadie: { tone: "warn", text: () => "No hay pacientes para avisar: ninguno tiene activados los avisos del foro por email o notificación." },
+  dup: { tone: "warn", text: () => "Ya se había enviado un aviso hace instantes." },
+  err: { tone: "warn", text: () => "La publicación se guardó, pero el aviso no se pudo enviar. Probá de nuevo desde Editar." },
+};
+
+export default async function Page({ params, searchParams }: PageProps<"/admin/foro/[id]">) {
   const user = await requireUser("admin");
   const { id } = await params;
+  const sp = await searchParams;
+  const avisoKey = typeof sp.aviso === "string" ? sp.aviso : "";
+  const aviso = AVISOS[avisoKey];
+  const avisoN = Number(typeof sp.n === "string" ? sp.n : 0) || 0;
   if (!z.string().uuid().safeParse(id).success) notFound();
   const post = await getPost(id);
   if (!post) notFound();
@@ -26,10 +38,19 @@ export default async function Page({ params }: PageProps<"/admin/foro/[id]">) {
       <MarkSeen action={markCommentsSeen} postId={id} pending={comments.some((c) => c.isNew)} />
       <Link href="/admin/foro" className="text-sm font-extrabold text-verde underline">← Volver al foro</Link>
 
+      {aviso ? (
+        <p role="status" data-aviso={avisoKey} className={`rounded-xl px-4 py-3 text-sm font-bold ${aviso.tone === "ok" ? "bg-[#e6f4ea] text-verde-oscuro" : "bg-[#fff4d6] text-[#7a5a00]"}`}>
+          {aviso.text(avisoN)}
+        </p>
+      ) : null}
+
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="break-words text-3xl font-extrabold">{post.title}</h1>
-          <p className="mt-1 text-sm font-bold text-suave">{formatDate(post.createdAt)}</p>
+          <p className="mt-1 text-sm font-bold text-suave">
+            {formatDate(post.createdAt)}
+            {post.notifiedAt ? ` · Avisaste a los pacientes el ${formatDate(post.notifiedAt)}` : ""}
+          </p>
         </div>
         <Link href={`/admin/foro/${id}/editar`} className="flex min-h-11 items-center rounded-xl border-[1.5px] border-borde px-4 text-sm font-extrabold hover:bg-fondo">
           Editar
