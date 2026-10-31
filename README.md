@@ -11,7 +11,7 @@ Hecha por [Sushi Software Studio](https://sushisoftwarestudio.com.ar).
 - [~] Paso 2: pacientes ✅ (importación CSV pendiente) · agenda ✅ (citas, otros eventos, repetición semanal, editar y cancelar, sin superposición) · notas privadas en el perfil del paciente ✅ (solo el administrador; incluye las notas de las citas del calendario).
 - [x] Paso 3: vista del paciente ✅ (ver turno, confirmar asistencia, pedir cambio por mensaje) y panel «Pedidos» del administrador con contador.
 - [x] Paso 4: recordatorios (push + email 24 h y 2 h antes) y botón de WhatsApp manual.
-- [ ] Paso 5: foro con archivos, comentarios y moderación.
+- [~] Paso 5: foro ✅ (publicaciones con audios, imágenes, documentos y enlaces; comentarios con solo el nombre de pila; moderación). Falta conectar el almacenamiento definitivo (ver «Foro»).
 
 ## Desarrollo local
 
@@ -81,6 +81,15 @@ npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de 
 - En iPhone/iPad las notificaciones push solo funcionan con la app agregada a la pantalla de inicio.
 - **Seguridad:** el cron exige `CRON_SECRET`; las direcciones de push solo se aceptan si pertenecen a los servicios de los navegadores (Chrome/Edge, Firefox, Safari, Windows), para que nadie use al servidor para hacer pedidos a direcciones internas; los registros no imprimen emails de pacientes.
 - **Pruebas:** `npm test` (las de base de datos corren si `DATABASE_URL` está definida).
+
+## Foro (Paso 5)
+- **Quién hace qué:** la administradora publica (título, texto, archivos y enlaces), edita, elimina, cierra o abre los comentarios y modera. Los pacientes leen y comentan; no suben archivos.
+- **Archivos permitidos:** audios (mp3, m4a, aac, wav, ogg, opus), imágenes (jpg, png, webp, gif), PDF y documentos (doc/docx, xls/xlsx, ppt/pptx, odt, epub, txt). Sin HTML, SVG ni ejecutables. **Videos no se suben**: se comparten como enlace (p. ej. YouTube no listado). Tope por archivo: `FORUM_MAX_FILE_MB` (100 por defecto). Para habilitar video basta agregar sus extensiones en `src/lib/forum/files.ts`.
+- **Enlaces:** solo `http`/`https`; se abren en otra pestaña con `noopener`.
+- **Privacidad de los comentarios:** los pacientes ven solo el **nombre de pila** de quien comenta (el apellido se recorta en el servidor, no llega al navegador). La administradora ve el nombre completo. Un comentario oculto desaparece para los pacientes (también para su autor) y se puede restaurar; eliminar es definitivo. Cada paciente puede borrar solo los suyos. Límite: 5 comentarios cada 2 minutos y 1000 caracteres. El menú de la administradora avisa de comentarios nuevos.
+- **Archivos protegidos:** nunca hay una dirección pública. Cada vista o descarga pasa por `/api/forum/files/[id]`, que exige sesión (administradora o paciente activo) y redirige a una dirección temporal firmada. Los archivos se suben directo del navegador al almacenamiento con una dirección temporal que autoriza solo ese archivo, ese tipo y ese tamaño exacto.
+- **Almacenamiento intercambiable:** `STORAGE_DRIVER=local` guarda en `STORAGE_LOCAL_DIR` (`.storage`, ignorado por git) y sirve para desarrollo y pruebas; en producción pide `STORAGE_SECRET` (mínimo 32 caracteres). El resto del foro solo conoce la interfaz de `src/lib/storage`; conectar Cloudflare R2 (o S3) es agregar un driver con URLs prefirmadas, sin tocar el foro. **Pendiente de decidir el servicio definitivo.** Un hosting con disco efímero perdería los archivos del driver local.
+- **Limitación conocida:** si Ana sube un archivo y cierra la página sin publicar, el archivo queda huérfano en el almacenamiento (al quitarlo con «Quitar» sí se borra). Se puede limpiar con un script periódico.
 
 ## Pendientes conocidos
 
