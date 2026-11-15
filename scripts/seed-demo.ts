@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { inArray, like } from "drizzle-orm";
 import { db, pool } from "../src/db";
-import { changeRequests, events, invitations, patientNotes, sessions, users } from "../src/db/schema";
+import { changeRequests, events, forumComments, invitations, patientNotes, sessions, users } from "../src/db/schema";
 import { addDays, localToDate, snapToWeekday, todayYmd } from "../src/lib/dates";
 import { hashPassword } from "../src/lib/password";
 
@@ -23,6 +23,7 @@ async function reset() {
   const demo = await db.select({ id: users.id }).from(users).where(like(users.email, "demo%@example.com"));
   const ids = demo.map((d) => d.id);
   if (ids.length === 0) return console.log("No hay datos de prueba.");
+  await db.delete(forumComments).where(inArray(forumComments.userId, ids));
   await db.delete(changeRequests).where(inArray(changeRequests.patientId, ids));
   await db.delete(patientNotes).where(inArray(patientNotes.patientId, ids));
   await db.delete(events).where(inArray(events.patientId, ids));

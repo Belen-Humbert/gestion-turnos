@@ -12,6 +12,7 @@
     "seed:admin": "tsx scripts/seed-admin.ts",
     "invite": "tsx scripts/invite.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
+    "seed:showcase": "tsx scripts/seed-showcase.ts",
     "reminders": "tsx scripts/send-reminders.ts",
     "vapid": "web-push generate-vapid-keys",
     "typecheck": "tsc --noEmit",
