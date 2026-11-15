@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, count, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+import { attachmentGroup, type ForumFilter } from "./filters";
 import { db } from "@/db";
 import { forumAttachments, forumComments, forumPosts, users } from "@/db/schema";
 
@@ -13,10 +14,11 @@ export type PostSummary = {
   attachmentCount: number;
   commentCount: number;
   newComments: number; // solo tiene sentido para la administradora
+  groups: ForumFilter[]; // tipos de material que tiene la publicación
 };
 
-export async function listPosts(): Promise<PostSummary[]> {
-  return db
+export async function listPosts(filter: ForumFilter | null = null): Promise<PostSummary[]> {
+  const rows = await db
     .select({
       id: forumPosts.id,
       title: forumPosts.title,
@@ -28,9 +30,15 @@ export async function listPosts(): Promise<PostSummary[]> {
       attachmentCount: sql<number>`(select count(*)::int from forum_attachments a where a.post_id = forum_posts.id)`,
       commentCount: sql<number>`(select count(*)::int from forum_comments c where c.post_id = forum_posts.id and c.hidden_at is null)`,
       newComments: sql<number>`(select count(*)::int from forum_comments c join users u on u.id = c.user_id where c.post_id = forum_posts.id and c.hidden_at is null and c.admin_seen_at is null and u.role = 'patient')`,
+      kinds: sql<string[]>`(select coalesce(array_agg(distinct a.kind || '|' || coalesce(a.content_type, '')), '{}') from forum_attachments a where a.post_id = forum_posts.id)`,
     })
     .from(forumPosts)
     .orderBy(desc(forumPosts.createdAt));
+  const all = rows.map(({ kinds, ...r }) => ({
+    ...r,
+    groups: [...new Set((kinds ?? []).map((k) => attachmentGroup(k.split("|")[0], k.split("|")[1] || null)))],
+  }));
+  return filter ? all.filter((p) => p.groups.includes(filter)) : all;
 }
 
 export async function getPost(id: string) {
