@@ -95,7 +95,9 @@ npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de 
 - **Aviso de material nuevo:** al publicar o editar, Ana puede tildar «Avisar a los pacientes que hay material nuevo» (**viene sin tildar**). El aviso es neutro («Hay material nuevo en el foro», sin título ni contenido) y llega por email y/o notificación según lo que cada paciente eligió en Perfil → Recordatorios; cada paciente puede apagar «Avisarme cuando haya material nuevo en el foro». Usa el mismo SMTP/VAPID que los recordatorios: sin configurar, el aviso solo se simula y la publicación no queda marcada como avisada. Un doble clic no duplica el aviso (ventana de 1 minuto) y un fallo de envío nunca pierde la publicación. Migración `0008` (`users.notify_forum`, `forum_posts.notified_at`).
 - **Limitación conocida:** si Ana sube un archivo y cierra la página sin publicar, el archivo queda huérfano en el almacenamiento (al quitarlo con «Quitar» sí se borra). Se puede limpiar con un script periódico.
 
+## Recuperar contraseña y límite de intentos
+- **Olvidé mi contraseña:** el login tiene el link «¿Olvidaste tu contraseña?» (`/recuperar`). Se escribe el email y, si existe una cuenta activa con contraseña, llega un email neutro con un link de un solo uso que vale **1 hora** (`/recuperar/<token>`). La respuesta en pantalla es siempre la misma exista o no el email, y el envío se hace después de responder, para que nadie pueda averiguar quién es paciente. Solo se guarda el hash del token. Al cambiar la contraseña se cierran todas las sesiones de esa cuenta. Máximo 3 pedidos por hora por email y 10 por IP. Funciona para pacientes y para Ana. Sin SMTP configurado el email solo se simula (ver `.env.example`).
+- **Límite de intentos en la base:** los intentos de login, de cambio de contraseña y los pedidos de recuperación se cuentan en la tabla `rate_limits` (vale con varias instancias y sobrevive a reinicios). La clave se guarda hasheada: no quedan emails ni IP en claro. Migración `0011`.
+
 ## Pendientes conocidos
 
-- El límite de intentos de login es en memoria (una sola instancia); en producción con varias instancias conviene moverlo a la base o a Redis.
-- Falta el flujo de "olvidé mi contraseña" (se resuelve reinvitando al paciente desde el panel).

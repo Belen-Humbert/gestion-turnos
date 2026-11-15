@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { login } from "@/app/actions";
 import { Field, FormError, SubmitButton } from "@/components/form-bits";
@@ -18,6 +19,7 @@ export function LoginForm() {
       <Field label="Contraseña" name="password" type="password" autoComplete="current-password" />
       <FormError message={state?.error} />
       <SubmitButton>Ingresar</SubmitButton>
+      <Link href="/recuperar" className="text-sm font-extrabold text-verde underline">¿Olvidaste tu contraseña?</Link>
     </form>
   );
 }

@@ -44,7 +44,7 @@ const passwordSchema = z
 export async function changePassword(_prev: ProfileFormState, formData: FormData): Promise<ProfileFormState> {
   const user = await requireUser("patient");
   const key = `pwchange:${user.id}`;
-  if (isLimited(key)) return { error: "Demasiados intentos. Probá de nuevo en unos minutos." };
+  if (await isLimited(key)) return { error: "Demasiados intentos. Probá de nuevo en unos minutos." };
 
   const parsed = passwordSchema.safeParse({
     current: formData.get("current"),
@@ -55,12 +55,12 @@ export async function changePassword(_prev: ProfileFormState, formData: FormData
 
   const [row] = await db.select({ hash: users.passwordHash }).from(users).where(eq(users.id, user.id)).limit(1);
   if (!row?.hash || !(await verifyPassword(parsed.data.current, row.hash))) {
-    registerFailure(key);
+    await registerFailure(key);
     return { error: "La contraseña actual no es correcta." };
   }
   if (parsed.data.current === parsed.data.password) return { error: "La contraseña nueva tiene que ser distinta de la actual." };
 
-  clearAttempts(key);
+  await clearAttempts(key);
   await db.update(users).set({ passwordHash: await hashPassword(parsed.data.password) }).where(eq(users.id, user.id));
   // Cierra las sesiones en otros dispositivos y conserva la actual.
   const token = (await cookies()).get(SESSION_COOKIE)?.value;

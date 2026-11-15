@@ -29,18 +29,18 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
   const { email, password } = parsed.data;
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
   const key = `${ip}|${email}`;
-  if (isLimited(key)) {
+  if (await isLimited(key)) {
     return { error: "Demasiados intentos. Probá de nuevo en unos minutos.", email };
   }
 
   const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
   const valid = await verifyPassword(password, user?.passwordHash ?? (await getDummyHash()));
   if (!user || !user.passwordHash || !user.active || !valid) {
-    registerFailure(key);
+    await registerFailure(key);
     return { error: "Email o contraseña incorrectos.", email };
   }
 
-  clearAttempts(key);
+  await clearAttempts(key);
   await createSession(user.id);
   redirect(homeFor(user.role));
 }
