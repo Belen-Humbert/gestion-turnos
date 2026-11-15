@@ -103,4 +103,10 @@ npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de 
 `npm run seed:showcase` carga datos de demostración completos (pacientes, agenda de la semana, foro con archivos, comentarios, corazones y respuestas) y `npm run seed:showcase -- --reset` los borra. Solo para desarrollo. El recorrido sugerido para mostrársela a Ana está en `docs/guion-demo.md`.
 
 ## Pendientes conocidos
-
+- Poner la app en línea: hosting y base de datos, dominio, HTTPS, variables de entorno (ver `.env.example`), tarea programada de recordatorios (`/api/cron/reminders`).
+- Email real (SMTP) y claves VAPID para que los recordatorios y avisos salgan de verdad.
+- Almacenamiento definitivo de archivos del foro (driver de Cloudflare R2) y un script que limpie archivos huérfanos.
+- Importación de pacientes por CSV (a la espera de la lista de Ana).
+- Copias de seguridad automáticas de la base de datos.
+- Cuenta real de Ana con contraseña fuerte, y borrar las cuentas de demo y prueba.
+- Pasar el repositorio a privado.
