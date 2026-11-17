@@ -99,5 +99,14 @@ npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de 
 - **Olvidé mi contraseña:** el login tiene el link «¿Olvidaste tu contraseña?» (`/recuperar`). Se escribe el email y, si existe una cuenta activa con contraseña, llega un email neutro con un link de un solo uso que vale **1 hora** (`/recuperar/<token>`). La respuesta en pantalla es siempre la misma exista o no el email, y el envío se hace después de responder, para que nadie pueda averiguar quién es paciente. Solo se guarda el hash del token. Al cambiar la contraseña se cierran todas las sesiones de esa cuenta. Máximo 3 pedidos por hora por email y 10 por IP. Funciona para pacientes y para Ana. Sin SMTP configurado el email solo se simula (ver `.env.example`).
 - **Límite de intentos en la base:** los intentos de login, de cambio de contraseña y los pedidos de recuperación se cuentan en la tabla `rate_limits` (vale con varias instancias y sobrevive a reinicios). La clave se guarda hasheada: no quedan emails ni IP en claro. Migración `0011`.
 
-## Pendientes conocidos
+## Demo
+`npm run seed:showcase` carga datos de demostración completos (pacientes, agenda de la semana, foro con archivos, comentarios, corazones y respuestas) y `npm run seed:showcase -- --reset` los borra. Solo para desarrollo. El recorrido sugerido para mostrársela a Ana está en `docs/guion-demo.md`.
 
+## Pendientes conocidos
+- Poner la app en línea: hosting y base de datos, dominio, HTTPS, variables de entorno (ver `.env.example`), tarea programada de recordatorios (`/api/cron/reminders`).
+- Email real (SMTP) y claves VAPID para que los recordatorios y avisos salgan de verdad.
+- Almacenamiento definitivo de archivos del foro (driver de Cloudflare R2) y un script que limpie archivos huérfanos.
+- Importación de pacientes por CSV (a la espera de la lista de Ana).
+- Copias de seguridad automáticas de la base de datos.
+- Cuenta real de Ana con contraseña fuerte, y borrar las cuentas de demo y prueba.
+- Pasar el repositorio a privado.
