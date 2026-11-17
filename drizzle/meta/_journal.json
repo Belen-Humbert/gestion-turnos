@@ -78,6 +78,13 @@
       "when": 1793472119298,
       "tag": "0010_forum_avisos_paciente",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1794756352029,
+      "tag": "0011_seguridad_recuperacion_rate_limit",
+      "breakpoints": true
     }
   ]
 }

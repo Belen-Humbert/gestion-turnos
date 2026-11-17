@@ -53,6 +53,30 @@ export const invitations = pgTable(
   (t) => [index("invitations_user_idx").on(t.userId)],
 );
 
+// Recuperación de contraseña: igual que las invitaciones, solo se guarda el hash del token y vence rápido.
+export const passwordResets = pgTable(
+  "password_resets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("password_resets_user_idx").on(t.userId)],
+);
+
+// Contador de intentos para frenar fuerza bruta. Vive en la base para que valga con varias instancias y
+// sobreviva a reinicios. La clave se guarda hasheada: no quedan emails ni IP en claro.
+export const rateLimits = pgTable("rate_limits", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull(),
+  resetAt: timestamp("reset_at", { withTimezone: true }).notNull(),
+});
+
 // Sesiones en base de datos: se pueden revocar (por ejemplo al desactivar a un paciente).
 export const sessions = pgTable(
   "sessions",
