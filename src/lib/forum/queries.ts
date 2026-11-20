@@ -26,11 +26,12 @@ function likePattern(q: string) {
   return `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 }
 
-// Publicaciones, de la más nueva a la más vieja. `filters`: tipos de material que deben estar todos presentes.
+// Publicaciones, de la más nueva a la más vieja. `filters`: tipos de material; con match "any" alcanza con que tenga uno, con "all" tienen que estar todos.
 // `q`: busca en el título, el texto y los nombres de los adjuntos.
 export async function listPosts(
   filters: ForumFilter[] = [],
   q = "",
+  match: "any" | "all" = "any",
 ): Promise<PostSummary[]> {
   const term = q.trim().slice(0, 80);
   const like = term ? likePattern(term) : null;
@@ -68,9 +69,12 @@ export async function listPosts(
       ),
     ],
   }));
-  return filters.length
-    ? all.filter((p) => filters.every((f) => p.groups.includes(f)))
-    : all;
+  if (!filters.length) return all;
+  return all.filter((p) =>
+    match === "all"
+      ? filters.every((f) => p.groups.includes(f))
+      : filters.some((f) => p.groups.includes(f)),
+  );
 }
 
 export async function getPost(id: string) {
