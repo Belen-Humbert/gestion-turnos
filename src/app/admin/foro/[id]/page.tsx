@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { LockIcon, UnlockIcon } from "@/components/icons";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { AttachmentList } from "@/components/forum/attachments";
@@ -9,19 +10,51 @@ import { MarkSeen } from "@/components/forum/mark-seen";
 import { formatDate } from "@/lib/dates";
 import { getPost, listAttachments, listComments } from "@/lib/forum/queries";
 import { requireUser } from "@/lib/session";
-import { adminComment, toggleHeart, deleteComment, deletePost, markCommentsSeen, setCommentHidden, setCommentsOpen } from "../actions";
+import {
+  adminComment,
+  toggleHeart,
+  deleteComment,
+  deletePost,
+  markCommentsSeen,
+  setCommentHidden,
+  setCommentsOpen,
+} from "../actions";
 
 export const metadata: Metadata = { title: "Publicación" };
 
-const AVISOS: Record<string, { tone: "ok" | "warn"; text: (n: number) => string }> = {
-  ok: { tone: "ok", text: (n) => `Aviso enviado a ${n} ${n === 1 ? "paciente" : "pacientes"}.` },
-  sim: { tone: "warn", text: () => "No se envió ningún aviso real: falta configurar el email o las notificaciones del servidor." },
-  nadie: { tone: "warn", text: () => "No hay pacientes para avisar: ninguno tiene activados los avisos del foro por email o notificación." },
-  dup: { tone: "warn", text: () => "Ya se había enviado un aviso hace instantes." },
-  err: { tone: "warn", text: () => "La publicación se guardó, pero el aviso no se pudo enviar. Probá de nuevo desde Editar." },
+const AVISOS: Record<
+  string,
+  { tone: "ok" | "warn"; text: (n: number) => string }
+> = {
+  ok: {
+    tone: "ok",
+    text: (n) => `Aviso enviado a ${n} ${n === 1 ? "paciente" : "pacientes"}.`,
+  },
+  sim: {
+    tone: "warn",
+    text: () =>
+      "No se envió ningún aviso real: falta configurar el email o las notificaciones del servidor.",
+  },
+  nadie: {
+    tone: "warn",
+    text: () =>
+      "No hay pacientes para avisar: ninguno tiene activados los avisos del foro por email o notificación.",
+  },
+  dup: {
+    tone: "warn",
+    text: () => "Ya se había enviado un aviso hace instantes.",
+  },
+  err: {
+    tone: "warn",
+    text: () =>
+      "La publicación se guardó, pero el aviso no se pudo enviar. Probá de nuevo desde Editar.",
+  },
 };
 
-export default async function Page({ params, searchParams }: PageProps<"/admin/foro/[id]">) {
+export default async function Page({
+  params,
+  searchParams,
+}: PageProps<"/admin/foro/[id]">) {
   const user = await requireUser("admin");
   const { id } = await params;
   const sp = await searchParams;
@@ -31,15 +64,31 @@ export default async function Page({ params, searchParams }: PageProps<"/admin/f
   if (!z.string().uuid().safeParse(id).success) notFound();
   const post = await getPost(id);
   if (!post) notFound();
-  const [attachments, comments] = await Promise.all([listAttachments(id), listComments(id, user)]);
+  const [attachments, comments] = await Promise.all([
+    listAttachments(id),
+    listComments(id, user),
+  ]);
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
-      <MarkSeen action={markCommentsSeen} postId={id} pending={comments.some((c) => c.isNew)} />
-      <Link href="/admin/foro" className="text-sm font-extrabold text-verde underline">← Volver al foro</Link>
+      <MarkSeen
+        action={markCommentsSeen}
+        postId={id}
+        pending={comments.some((c) => c.isNew)}
+      />
+      <Link
+        href="/admin/foro"
+        className="text-sm font-extrabold text-verde underline"
+      >
+        ← Volver al foro
+      </Link>
 
       {aviso ? (
-        <p role="status" data-aviso={avisoKey} className={`rounded-xl px-4 py-3 text-sm font-bold ${aviso.tone === "ok" ? "bg-[#e6f4ea] text-verde-oscuro" : "bg-[#fff4d6] text-[#7a5a00]"}`}>
+        <p
+          role="status"
+          data-aviso={avisoKey}
+          className={`rounded-xl px-4 py-3 text-sm font-bold ${aviso.tone === "ok" ? "bg-[#e6f4ea] text-verde-oscuro" : "bg-[#fff4d6] text-[#7a5a00]"}`}
+        >
           {aviso.text(avisoN)}
         </p>
       ) : null}
@@ -49,24 +98,76 @@ export default async function Page({ params, searchParams }: PageProps<"/admin/f
           <h1 className="break-words text-3xl font-extrabold">{post.title}</h1>
           <p className="mt-1 text-sm font-bold text-suave">
             {formatDate(post.createdAt)}
-            {post.notifiedAt ? ` · Avisaste a los pacientes el ${formatDate(post.notifiedAt)}` : ""}
+            {post.notifiedAt
+              ? ` · Avisaste a los pacientes el ${formatDate(post.notifiedAt)}`
+              : ""}
           </p>
         </div>
-        <Link href={`/admin/foro/${id}/editar`} className="flex min-h-11 items-center rounded-xl border-[1.5px] border-borde px-4 text-sm font-extrabold hover:bg-fondo">
+        <Link
+          href={`/admin/foro/${id}/editar`}
+          className="flex min-h-11 items-center rounded-xl border-[1.5px] border-borde px-4 text-sm font-extrabold hover:bg-fondo"
+        >
           Editar
         </Link>
       </header>
 
-      {post.body ? <p className="whitespace-pre-wrap break-words rounded-[22px] border border-borde bg-white p-6 text-[15px] font-semibold leading-relaxed">{post.body}</p> : null}
+      {post.body ? (
+        <p className="whitespace-pre-wrap break-words rounded-[22px] border border-borde bg-white p-6 text-[15px] font-semibold leading-relaxed">
+          {post.body}
+        </p>
+      ) : null}
       <AttachmentList attachments={attachments} />
 
-      <form action={setCommentsOpen} className="flex flex-wrap items-center justify-between gap-3 rounded-[22px] border border-borde bg-white p-5">
+      <form
+        action={setCommentsOpen}
+        className={`flex flex-wrap items-center justify-between gap-3 rounded-[22px] border-[1.5px] p-5 ${post.commentsOpen ? "border-verde/40 bg-verde-claro/50" : "border-orange-300 bg-orange-50"}`}
+      >
         <input type="hidden" name="postId" value={id} />
-        <input type="hidden" name="open" value={post.commentsOpen ? "0" : "1"} />
-        <p className="text-sm font-bold">{post.commentsOpen ? "Los pacientes pueden comentar." : "Comentarios cerrados: los pacientes ya no pueden comentar."}</p>
-        <button type="submit" className="min-h-11 rounded-xl border-[1.5px] border-borde px-4 text-sm font-extrabold hover:bg-fondo">
-          {post.commentsOpen ? "Cerrar comentarios" : "Abrir comentarios"}
-        </button>
+        <input
+          type="hidden"
+          name="open"
+          value={post.commentsOpen ? "0" : "1"}
+        />
+        <div className="flex items-center gap-3">
+          <span
+            className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${post.commentsOpen ? "bg-verde text-white" : "bg-orange-600 text-white"}`}
+          >
+            {post.commentsOpen ? (
+              <UnlockIcon size={22} />
+            ) : (
+              <LockIcon size={22} />
+            )}
+          </span>
+          <div>
+            <p
+              className={`text-base font-extrabold ${post.commentsOpen ? "text-verde-oscuro" : "text-orange-900"}`}
+            >
+              {post.commentsOpen
+                ? "Comentarios abiertos"
+                : "Comentarios cerrados"}
+            </p>
+            <p className="text-sm font-semibold text-suave">
+              {post.commentsOpen
+                ? "Los pacientes pueden comentar."
+                : "Los pacientes ya no pueden comentar."}
+            </p>
+          </div>
+        </div>
+        {post.commentsOpen ? (
+          <button
+            type="submit"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border-[1.5px] border-orange-600 bg-white px-4 text-sm font-extrabold text-orange-800 hover:bg-orange-50"
+          >
+            <LockIcon size={18} /> Cerrar comentarios
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-verde px-4 text-sm font-extrabold text-white hover:bg-verde-oscuro"
+          >
+            <UnlockIcon size={18} /> Abrir comentarios
+          </button>
+        )}
       </form>
 
       <CommentsSection
@@ -79,12 +180,23 @@ export default async function Page({ params, searchParams }: PageProps<"/admin/f
         moderation={{ setHidden: setCommentHidden, remove: deleteComment }}
       />
 
-      <section aria-label="Eliminar publicación" className="rounded-[22px] border border-borde bg-white p-6">
+      <section
+        aria-label="Eliminar publicación"
+        className="rounded-[22px] border border-borde bg-white p-6"
+      >
         <h2 className="mb-1 text-lg font-extrabold">Eliminar publicación</h2>
-        <p className="mb-4 text-sm font-semibold text-suave">Se borran también sus archivos y comentarios. No se puede deshacer.</p>
-        <ConfirmForm action={deletePost} message="¿Eliminar esta publicación con sus archivos y comentarios?">
+        <p className="mb-4 text-sm font-semibold text-suave">
+          Se borran también sus archivos y comentarios. No se puede deshacer.
+        </p>
+        <ConfirmForm
+          action={deletePost}
+          message="¿Eliminar esta publicación con sus archivos y comentarios?"
+        >
           <input type="hidden" name="postId" value={id} />
-          <button type="submit" className="min-h-12 w-full rounded-2xl border-[1.5px] border-error px-6 text-base font-extrabold text-error hover:bg-[#fbe9e9]">
+          <button
+            type="submit"
+            className="min-h-12 w-full rounded-2xl border-[1.5px] border-error px-6 text-base font-extrabold text-error hover:bg-[#fbe9e9]"
+          >
             Eliminar publicación
           </button>
         </ConfirmForm>

@@ -10,7 +10,12 @@ export default async function Page() {
   await requireUser("admin");
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
-      <Link href="/admin/foro" className="text-sm font-extrabold text-verde underline">← Volver al foro</Link>
+      <Link
+        href="/admin/foro"
+        className="text-sm font-extrabold text-verde underline"
+      >
+        ← Volver al foro
+      </Link>
       <h1 className="text-3xl font-extrabold">Nueva publicación</h1>
       <PostForm maxBytes={maxFileBytes()} />
     </div>
