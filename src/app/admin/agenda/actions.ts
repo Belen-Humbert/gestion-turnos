@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { randomUUID } from "node:crypto";
 import { and, eq, gte, isNull } from "drizzle-orm";
@@ -134,6 +135,7 @@ export async function saveEvent(_prev: EventFormState, formData: FormData): Prom
       // El nuevo horario tiene que recibir sus propios recordatorios.
       await db.delete(reminderLog).where(eq(reminderLog.eventId, idRaw));
     }
+    revalidatePath("/admin", "layout");
     redirect(`/admin?fecha=${date}`);
   }
 
@@ -197,5 +199,6 @@ export async function cancelEvent(_prev: EventFormState, formData: FormData): Pr
     await db.update(events).set({ cancelledAt: now }).where(eq(events.id, id.data));
     await resolveRequestsForEvents([id.data]);
   }
+  revalidatePath("/admin", "layout");
   redirect(`/admin?fecha=${dateToYmd(event.startsAt)}`);
 }
