@@ -10,7 +10,9 @@ import { PostForm } from "../../post-form";
 
 export const metadata: Metadata = { title: "Editar publicación" };
 
-export default async function Page({ params }: PageProps<"/admin/foro/[id]/editar">) {
+export default async function Page({
+  params,
+}: PageProps<"/admin/foro/[id]/editar">) {
   await requireUser("admin");
   const { id } = await params;
   if (!z.string().uuid().safeParse(id).success) notFound();
@@ -19,7 +21,12 @@ export default async function Page({ params }: PageProps<"/admin/foro/[id]/edita
   const attachments = await listAttachments(id);
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
-      <Link href={`/admin/foro/${id}`} className="text-sm font-extrabold text-verde underline">← Volver a la publicación</Link>
+      <Link
+        href={`/admin/foro/${id}`}
+        className="text-sm font-extrabold text-verde underline"
+      >
+        ← Volver a la publicación
+      </Link>
       <h1 className="text-3xl font-extrabold">Editar publicación</h1>
       <PostForm
         maxBytes={maxFileBytes()}
@@ -32,7 +39,10 @@ export default async function Page({ params }: PageProps<"/admin/foro/[id]/edita
             id: a.id,
             label: a.label,
             kind: a.kind,
-            detail: a.kind === "link" && a.url ? `Enlace · ${linkHost(a.url)}` : `Archivo${a.sizeBytes ? ` · ${formatBytes(a.sizeBytes)}` : ""}`,
+            detail:
+              a.kind === "link" && a.url
+                ? `Enlace · ${linkHost(a.url)}`
+                : `Archivo${a.sizeBytes ? ` · ${formatBytes(a.sizeBytes)}` : ""}`,
           })),
         }}
       />
