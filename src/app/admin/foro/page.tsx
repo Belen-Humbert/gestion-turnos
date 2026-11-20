@@ -19,9 +19,13 @@ export default async function Page({ searchParams }: PageProps<"/admin/foro">) {
   const sp = await searchParams;
   const filters = parseFilters(sp.tipo);
   const q = (Array.isArray(sp.q) ? sp.q[0] : sp.q)?.trim().slice(0, 80) ?? "";
+  const match =
+    (Array.isArray(sp.modo) ? sp.modo[0] : sp.modo) === "todos"
+      ? "todos"
+      : "cualquiera";
   const filtering = filters.length > 0 || q !== "";
   const [posts, usage, total] = await Promise.all([
-    listPosts(filters, q),
+    listPosts(filters, q, match === "todos" ? "all" : "any"),
     forumStorageUsage(),
     filtering ? listPosts() : null,
   ]);
