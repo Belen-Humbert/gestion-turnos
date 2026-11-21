@@ -43,3 +43,9 @@ next-env.d.ts
 
 # archivos subidos en desarrollo (almacenamiento local)
 /.storage/
+
+# e2e
+/.next-e2e/
+/.storage-e2e/
+/test-results/
+/playwright-report/

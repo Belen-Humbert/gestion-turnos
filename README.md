@@ -50,7 +50,9 @@ npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de 
 | `npm run seed:admin` | Crea o actualiza a la administradora |
 | `npm run seed:demo` | Crea pacientes y citas de PRUEBA (`demo1@example.com`…, clave `demo-paciente-123`). Con `-- --reset` los borra. Solo para desarrollo |
 | `npm run invite` | Genera un link de invitación (desarrollo) |
-| `npm run lint` / `typecheck` / `test` | Chequeos y tests |
+| `npm run lint` / `typecheck` / `test` | Chequeos y tests rápidos (vitest) |
+| `npm run e2e` | Pruebas de punta a punta con un navegador de verdad (ver abajo) |
+| `npm run e2e:rapido` | Lo mismo sin recrear la base ni recompilar (para repetir una prueba) |
 
 ## Agenda
 
@@ -98,6 +100,18 @@ npm run invite -- paciente@ejemplo.com "Nombre Apellido"   # imprime el link de 
 ## Recuperar contraseña y límite de intentos
 - **Olvidé mi contraseña:** el login tiene el link «¿Olvidaste tu contraseña?» (`/recuperar`). Se escribe el email y, si existe una cuenta activa con contraseña, llega un email neutro con un link de un solo uso que vale **1 hora** (`/recuperar/<token>`). La respuesta en pantalla es siempre la misma exista o no el email, y el envío se hace después de responder, para que nadie pueda averiguar quién es paciente. Solo se guarda el hash del token. Al cambiar la contraseña se cierran todas las sesiones de esa cuenta. Máximo 3 pedidos por hora por email y 10 por IP. Funciona para pacientes y para Ana. Sin SMTP configurado el email solo se simula (ver `.env.example`).
 - **Límite de intentos en la base:** los intentos de login, de cambio de contraseña y los pedidos de recuperación se cuentan en la tabla `rate_limits` (vale con varias instancias y sobrevive a reinicios). La clave se guarda hasheada: no quedan emails ni IP en claro. Migración `0011`.
+
+## Pruebas de punta a punta (e2e)
+Abren Chromium, entran como Ana y como pacientes, y recorren agenda, pedidos, foro, notas privadas, perfil, recuperar contraseña y recordatorios. Son 10 flujos con unas 270 comprobaciones.
+
+Primera vez en cada computadora (descarga el navegador, unos 150 MB): `npx playwright install chromium`.
+
+Correrlas: `npm run e2e` (tarda unos 2 minutos). Para una sola: `npm run e2e -- e2e/forum.spec.ts`. Si falla alguna, el informe dice cuál comprobación y en qué línea; los detalles quedan en `test-results/`.
+
+- **Usan su propia base de datos**: la de `DATABASE_URL` con el sufijo `_e2e` (por ejemplo `turnos_e2e`). Se borra y se vuelve a crear en cada corrida, así que **nunca tocan tus datos de desarrollo**. El usuario de Postgres tiene que poder crear bases (con el `docker-compose.yml` ya puede). También podés fijarla con `E2E_DATABASE_URL`; si su nombre no incluye `e2e` o `test`, se niegan a correr.
+- Compilan la app en `.next-e2e` y la levantan en los puertos 3100 y 3101, así que **podés tener `npm run dev` abierto** mientras corren. La 3101 usa un servidor de email de prueba (puerto 2525) para comprobar el mail de recuperar contraseña y los recordatorios sin mandar nada real.
+- Las fechas son relativas a hoy: no vencen.
+- Cuando agregues una pantalla o una regla nueva, sumá su comprobación al flujo que corresponda en `e2e/*.spec.ts` (`check("qué debe pasar", condición)`).
 
 ## Demo
 `npm run seed:showcase` carga datos de demostración completos (pacientes, agenda de la semana, foro con archivos, comentarios, corazones y respuestas) y `npm run seed:showcase -- --reset` los borra. Solo para desarrollo. El recorrido sugerido para mostrársela a Ana está en `docs/guion-demo.md`.

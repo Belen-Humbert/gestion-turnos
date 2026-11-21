@@ -9,6 +9,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Las pruebas e2e compilan en otra carpeta para no pisar el `npm run dev` que tengas abierto.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   turbopack: {
     rules: {
