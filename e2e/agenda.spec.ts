@@ -131,13 +131,32 @@ test("agenda de Ana", async ({ browser }) => {
 
   // fin de semana
   await cita(sat, "10:00");
-  await submitError("lunes a viernes");
-  check("el sábado se rechaza", true);
+  await a.waitForURL(`**/admin?fecha=${sat}`);
+  check(
+    "el sábado se acepta",
+    (await count(`select count(*) from events where starts_at::date = '${sat}'`)) === "1",
+  );
+  // 24 h: un evento de madrugada y una cita a la noche, en domingo
+  const sun = addDays(mon, 6);
+  await otro("Madrugada", sun, "00:30", "02:00");
+  await a.waitForURL(`**/admin?fecha=${sun}`);
+  await cita(sun, "23:00", "50");
+  await a.waitForURL(`**/admin?fecha=${sun}`);
+  await a.goto(`${BASE}/admin?vista=dia&fecha=${sun}`);
+  check("el domingo muestra los eventos de madrugada y de la noche", (await blocks(a)) === 2);
+  await a.goto(`${BASE}/admin?fecha=${mon}`);
+  check(
+    "la semana muestra los 7 días",
+    (await a.locator("a[href^='/admin?vista=dia&fecha=']:visible").filter({ hasText: /^(lun|mar|mi[eé]|jue|vie|s[aá]b|dom)/i }).count()) === 7,
+  );
+  await cita(sun, "23:30", "50");
+  await submitError("el mismo día");
+  check("una cita no puede cruzar la medianoche", true);
 
   // otros eventos
   await otro("Clase", tue, "11:00", "13:00");
   await a.waitForURL(`**/admin?fecha=${tue}`);
-  await a.goto(`${BASE}/admin?fecha=${tue}`);
+  await a.goto(`${BASE}/admin?vista=dia&fecha=${tue}`);
   check(
     "otro evento visible en azul",
     (await a.locator("a[href^='/admin/agenda/'].bg-azul:visible").count()) ===

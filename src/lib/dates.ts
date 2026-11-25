@@ -46,6 +46,7 @@ export function weekdayIndex(ymd: string): number {
   return (new Date(`${ymd}T00:00:00Z`).getUTCDay() + 6) % 7;
 }
 
+// Lunes a viernes. La agenda trabaja los 7 días; esto lo usan solo los datos de demostración.
 export function isWeekday(ymd: string): boolean {
   return weekdayIndex(ymd) <= 4;
 }
@@ -54,17 +55,10 @@ export function mondayOf(ymd: string): string {
   return addDays(ymd, -weekdayIndex(ymd));
 }
 
-// Sábado y domingo pasan al lunes siguiente (la agenda es de lunes a viernes).
+// Sábado y domingo pasan al lunes siguiente (para repartir los turnos de demostración en días hábiles).
 export function snapToWeekday(ymd: string): string {
   const w = weekdayIndex(ymd);
   return w <= 4 ? ymd : addDays(ymd, 7 - w);
-}
-
-// Siguiente o anterior día hábil.
-export function stepWeekday(ymd: string, dir: 1 | -1): string {
-  let next = addDays(ymd, dir);
-  while (!isWeekday(next)) next = addDays(next, dir);
-  return next;
 }
 
 export function minutesBetween(a: Date, b: Date): number {
@@ -113,13 +107,13 @@ export function addMonths(ymd: string, n: number): string {
   return new Date(Date.UTC(y, m - 1 + n, 1)).toISOString().slice(0, 10);
 }
 
-// Semanas (lunes a viernes) que tocan el mes de la fecha dada.
+// Semanas (lunes a domingo) que tocan el mes de la fecha dada.
 export function monthWeeks(ymd: string): string[][] {
   const first = `${ymd.slice(0, 7)}-01`;
   const last = lastOfMonth(first);
   const weeks: string[][] = [];
   for (let monday = mondayOf(first); monday <= last; monday = addDays(monday, 7)) {
-    const days = [0, 1, 2, 3, 4].map((i) => addDays(monday, i));
+    const days = [0, 1, 2, 3, 4, 5, 6].map((i) => addDays(monday, i));
     if (days.some((d) => d >= first && d <= last)) weeks.push(days);
   }
   return weeks;

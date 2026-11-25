@@ -14,7 +14,6 @@ import {
   dateToYmd,
   formatLong,
   isHm,
-  isWeekday,
   isYmd,
   localToDate,
   todayYmd,
@@ -64,7 +63,6 @@ export async function saveEvent(_prev: EventFormState, formData: FormData): Prom
   const start = String(formData.get("start") ?? "");
   if (!isYmd(date)) return fail("Elegí una fecha válida.");
   if (!isHm(start)) return fail("Elegí una hora de inicio válida.");
-  if (!isWeekday(date)) return fail("Por ahora la agenda es de lunes a viernes.");
   if (date < "2020-01-01" || date > addDays(todayYmd(), 1095)) return fail("La fecha está fuera de rango.");
 
   const loc = text(200).safeParse(formData.get("location"));

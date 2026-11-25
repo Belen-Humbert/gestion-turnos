@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { EventForm } from "@/components/agenda/event-form";
-import { isYmd, snapToWeekday, todayYmd } from "@/lib/dates";
+import { isYmd, todayYmd } from "@/lib/dates";
 import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Otro evento" };
@@ -22,7 +22,7 @@ export default async function NewOtherEventPage({ searchParams }: PageProps<"/ad
           Para clases, compromisos y todo lo que no es una cita. No se avisa a ningún paciente.
         </p>
       </header>
-      <EventForm defaults={{ kind: "other", date: snapToWeekday(fecha), start: "11:00", end: "13:00" }} />
+      <EventForm defaults={{ kind: "other", date: fecha, start: "11:00", end: "13:00" }} />
     </div>
   );
 }

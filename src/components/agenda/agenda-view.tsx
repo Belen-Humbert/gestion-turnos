@@ -30,7 +30,7 @@ function EventBlock({ e, startMin }: { e: AgendaEvent; startMin: number }) {
 
 function Grid({ days, events, view }: { days: string[]; events: AgendaEvent[]; view: "semana" | "dia" }) {
   const today = todayYmd();
-  // La grilla va de 8 a 20 y se estira si hay eventos fuera de ese horario.
+  // La grilla va de 8 a 20 y se estira (hasta las 24 h) si hay eventos fuera de ese horario.
   const mins = events.flatMap((e) => [toMin(dateToHm(e.startsAt)), toMin(dateToHm(e.endsAt))]);
   const startHour = Math.min(8, mins.length ? Math.floor(Math.min(...mins) / 60) : 8);
   const endHour = Math.max(20, mins.length ? Math.ceil(Math.max(...mins) / 60) : 20);
@@ -42,7 +42,7 @@ function Grid({ days, events, view }: { days: string[]; events: AgendaEvent[]; v
     <div
       className={`${view === "semana" ? "hidden md:block" : ""} overflow-x-auto rounded-[18px] border border-borde bg-white`}
     >
-      <div className="min-w-[560px]">
+      <div className="min-w-[760px]">
         <div className="flex border-b border-borde">
           <div className="w-14 shrink-0" />
           {days.map((d) => (
@@ -147,7 +147,7 @@ export function AgendaView({
   events: AgendaEvent[];
 }) {
   const monday = mondayOf(date);
-  const days = view === "semana" ? [0, 1, 2, 3, 4].map((i) => addDays(monday, i)) : [date];
+  const days = view === "semana" ? [0, 1, 2, 3, 4, 5, 6].map((i) => addDays(monday, i)) : [date];
   return (
     <>
       <Grid days={days} events={events} view={view} />

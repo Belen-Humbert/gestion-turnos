@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { EventForm } from "@/components/agenda/event-form";
 import { listBookablePatients } from "@/lib/agenda";
-import { isHm, isYmd, snapToWeekday, todayYmd } from "@/lib/dates";
+import { isHm, isYmd, todayYmd } from "@/lib/dates";
 import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Agregar cita" };
@@ -30,7 +30,7 @@ export default async function NewAppointmentPage({ searchParams }: PageProps<"/a
         patients={patients}
         defaults={{
           kind: "appointment",
-          date: snapToWeekday(fecha),
+          date: fecha,
           start: hora,
           duration: 50,
           patientId: patients.some((p) => p.id === paciente) ? paciente : "",

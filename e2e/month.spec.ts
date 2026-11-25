@@ -56,8 +56,8 @@ test("vista de mes", async ({ browser }) => {
   );
   const cells = await a.locator("[role=gridcell]").count();
   check(
-    "la grilla tiene 5 columnas (lunes a viernes)",
-    cells > 0 && cells % 5 === 0,
+    "la grilla tiene 7 columnas (lunes a domingo)",
+    cells > 0 && cells % 7 === 0,
   );
   check(
     "muestra el evento del lunes",

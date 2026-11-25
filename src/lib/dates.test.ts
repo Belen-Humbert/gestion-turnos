@@ -8,7 +8,6 @@ import {
   localToDate,
   mondayOf,
   snapToWeekday,
-  stepWeekday,
   weekdayIndex,
   addMonths,
   formatRange,
@@ -49,12 +48,10 @@ describe("días de la semana", () => {
     expect(mondayOf("2026-10-30")).toBe("2026-10-26");
     expect(addDays("2026-10-31", 1)).toBe("2026-11-01");
   });
-  it("salta los fines de semana", () => {
+  it("para los datos de demostración, los fines de semana pasan al lunes", () => {
     expect(snapToWeekday("2026-10-31")).toBe("2026-11-02");
     expect(snapToWeekday("2026-11-01")).toBe("2026-11-02");
     expect(snapToWeekday("2026-10-28")).toBe("2026-10-28");
-    expect(stepWeekday("2026-10-30", 1)).toBe("2026-11-02");
-    expect(stepWeekday("2026-11-02", -1)).toBe("2026-10-30");
   });
 });
 
@@ -81,16 +78,17 @@ describe("mes", () => {
     expect(addMonths("2026-01-15", -1)).toBe("2025-12-01");
     expect(addMonths("2026-12-31", 1)).toBe("2027-01-01");
   });
-  it("arma las semanas hábiles del mes", () => {
+  it("arma las semanas del mes de lunes a domingo", () => {
     const weeks = monthWeeks("2026-10-27");
-    expect(weeks[0]).toEqual(["2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02"]);
-    expect(weeks.at(-1)).toEqual(["2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30"]);
+    expect(weeks[0]).toEqual(["2026-09-28", "2026-09-29", "2026-09-30", "2026-10-01", "2026-10-02", "2026-10-03", "2026-10-04"]);
+    expect(weeks.at(-1)).toEqual(["2026-10-26", "2026-10-27", "2026-10-28", "2026-10-29", "2026-10-30", "2026-10-31", "2026-11-01"]);
     expect(weeks).toHaveLength(5);
   });
-  it("no agrega una semana que cae solo en fin de semana", () => {
-    // 1 de noviembre de 2026 es domingo: la semana del 26 al 30 de octubre no pertenece a noviembre.
+  it("incluye la semana en la que el mes empieza un domingo", () => {
+    // 1 de noviembre de 2026 es domingo: esa semana (26/10 al 1/11) ya se muestra en noviembre.
     const weeks = monthWeeks("2026-11-15");
-    expect(weeks[0][0]).toBe("2026-11-02");
+    expect(weeks[0][0]).toBe("2026-10-26");
+    expect(weeks[0][6]).toBe("2026-11-01");
     expect(weeks.every((w) => w.some((d) => d.startsWith("2026-11")))).toBe(true);
   });
 });

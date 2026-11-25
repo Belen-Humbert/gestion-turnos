@@ -4,7 +4,7 @@ import { dateToHm, dateToYmd, formatLong, monthWeeks, todayYmd } from "@/lib/dat
 import { eventTone } from "./styles";
 
 const MAX_CHIPS = 3;
-const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie"];
+const WEEKDAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
 const DOT: Record<string, string> = {
   "Otro evento": "bg-azul-texto",
@@ -12,7 +12,7 @@ const DOT: Record<string, string> = {
   "Sin confirmar": "bg-[#c58a00]",
 };
 
-// Mes completo de lunes a viernes. Cada día lleva a la vista del día; en el celular los
+// Mes completo, de lunes a domingo. Cada día lleva a la vista del día; en el celular los
 // eventos se resumen con puntos de color para que entren.
 export function MonthView({ date, events }: { date: string; events: AgendaEvent[] }) {
   const weeks = monthWeeks(date);
@@ -26,14 +26,14 @@ export function MonthView({ date, events }: { date: string; events: AgendaEvent[
 
   return (
     <div className="overflow-hidden rounded-[18px] border border-borde bg-white">
-      <div className="grid grid-cols-5 border-b border-borde">
+      <div className="grid grid-cols-7 border-b border-borde">
         {WEEKDAYS.map((w) => (
           <div key={w} className="px-2 py-2.5 text-center text-sm font-extrabold">
             {w}
           </div>
         ))}
       </div>
-      <div role="grid" aria-label="Mes" className="grid grid-cols-5">
+      <div role="grid" aria-label="Mes" className="grid grid-cols-7">
         {weeks.flat().map((d) => {
           const inMonth = d.startsWith(month);
           const list = byDay.get(d) ?? [];
@@ -42,7 +42,7 @@ export function MonthView({ date, events }: { date: string; events: AgendaEvent[
             <div
               key={d}
               role="gridcell"
-              className={`relative min-h-[72px] border-b border-l border-borde first:border-l-0 md:min-h-[116px] [&:nth-child(5n+1)]:border-l-0 ${
+              className={`relative min-h-[72px] border-b border-l border-borde first:border-l-0 md:min-h-[116px] [&:nth-child(7n+1)]:border-l-0 ${
                 inMonth ? "" : "bg-fondo/70"
               }`}
             >
