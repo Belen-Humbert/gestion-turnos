@@ -9,6 +9,7 @@ import {
   seedDemo,
   sql,
   uniq,
+  uniqPhone,
 } from "./support";
 
 // Notas privadas: solo las ve Ana, nunca la paciente.
@@ -29,6 +30,7 @@ test("notas privadas del paciente", async ({ browser }) => {
   await a.waitForURL("**/admin");
   await a.goto(`${BASE}/admin/pacientes/nuevo`);
   await a.fill("#name", name);
+  await a.fill("#phone", uniqPhone());
   await a.fill("#email", email);
   await a.click("button[type=submit]");
   await a.waitForSelector("text=Paciente creado");

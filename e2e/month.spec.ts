@@ -88,6 +88,7 @@ test("vista de mes", async ({ browser }) => {
     (await a.innerText("header")).includes(longMonthName(firstOfMonth(mon, 1))),
   );
   await a.click("a[aria-label='Mes anterior']");
+  await a.waitForURL(`**fecha=${firstOfMonth(mon, 0)}`);
   await a.click("a[aria-label='Mes anterior']");
   await a.waitForURL(`**fecha=${firstOfMonth(mon, -1)}`);
   check(

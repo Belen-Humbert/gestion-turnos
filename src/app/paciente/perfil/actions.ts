@@ -6,6 +6,7 @@ import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { pushSubscriptions, sessions, users } from "@/db/schema";
+import { phoneKey } from "@/lib/phone";
 import { isAllowedPushEndpoint } from "@/lib/push-endpoint";
 import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from "@/lib/password";
 import { clearAttempts, isLimited, registerFailure } from "@/lib/rate-limit";
@@ -17,20 +18,28 @@ export type ProfileFormState = { error?: string; ok?: string; values?: Record<st
 const phoneSchema = z
   .string()
   .trim()
-  .max(30, "El teléfono es demasiado largo.")
-  .regex(/^[0-9+()\-\s]*$/, "El teléfono solo puede tener números, espacios, +, - y paréntesis.");
+  .max(30, "El celular es demasiado largo.")
+  .regex(/^[0-9+()\-\s]*$/, "El celular solo puede tener números, espacios, +, - y paréntesis.");
 
 export async function updatePhone(_prev: ProfileFormState, formData: FormData): Promise<ProfileFormState> {
   const user = await requireUser("patient");
   const raw = String(formData.get("phone") ?? "");
   const phone = phoneSchema.safeParse(raw);
-  if (!phone.success) return { error: phone.error.issues[0]?.message ?? "Teléfono inválido.", values: { phone: raw } };
-  await db
-    .update(users)
-    .set({ phone: phone.data === "" ? null : phone.data })
-    .where(eq(users.id, user.id));
+  if (!phone.success) return { error: phone.error.issues[0]?.message ?? "Celular inválido.", values: { phone: raw } };
+  // El celular es obligatorio y también sirve para ingresar.
+  const key = phoneKey(phone.data);
+  if (!key) return { error: "Escribí tu celular con código de área, por ejemplo 261 555 0123.", values: { phone: raw } };
+  try {
+    await db.update(users).set({ phone: phone.data, phoneKey: key }).where(eq(users.id, user.id));
+  } catch (e) {
+    const err = e as { code?: string; cause?: { code?: string } };
+    if ((err.code ?? err.cause?.code) === "23505") {
+      return { error: "Ese celular ya está registrado en otra cuenta. Avisale al consultorio.", values: { phone: raw } };
+    }
+    throw e;
+  }
   revalidatePath("/paciente/perfil");
-  return { ok: "Teléfono guardado.", values: { phone: phone.data } };
+  return { ok: "Celular guardado.", values: { phone: phone.data } };
 }
 
 const passwordSchema = z

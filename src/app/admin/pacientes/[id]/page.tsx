@@ -10,7 +10,7 @@ import { getPatient } from "@/lib/patients";
 import { requireUser } from "@/lib/session";
 import { NotesSection } from "./notes";
 import { WhatsAppReminder } from "@/components/whatsapp-reminder";
-import { ActiveToggle, EditPatientForm, InvitationSection } from "./patient-forms";
+import { ActiveToggle, DischargeToggle, EditPatientForm, InvitationSection } from "./patient-forms";
 
 export const metadata: Metadata = { title: "Paciente" };
 
@@ -32,6 +32,7 @@ export default async function PatientPage({ params }: PageProps<"/admin/paciente
     dateLabel: noteDate.format(n.date),
   }));
   const upcoming = patient.active ? await upcomingAppointments(patient.id) : [];
+  const discharged = patient.status === "discharged";
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
@@ -52,7 +53,7 @@ export default async function PatientPage({ params }: PageProps<"/admin/paciente
         <StatusBadge status={patient.status} />
       </header>
 
-      {patient.active ? (
+      {patient.active && !discharged ? (
         <section aria-label="Próximos turnos" className="rounded-[22px] border border-borde bg-white p-6">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-lg font-extrabold">Próximos turnos</h2>
@@ -102,19 +103,31 @@ export default async function PatientPage({ params }: PageProps<"/admin/paciente
           </h2>
           <p className="mb-4 mt-1 text-sm font-semibold text-suave">
             {patient.status === "invited"
-              ? "Todavía no creó su contraseña. Podés generar un link nuevo para enviárselo."
+              ? "Todavía no creó su contraseña. Generá el link y mandáselo por WhatsApp."
               : "Si olvidó su contraseña, generá un link nuevo para que cree otra."}
           </p>
           <InvitationSection patientId={patient.id} resetting={patient.status === "active"} />
         </section>
       ) : null}
 
-      <section aria-label="Estado" className="rounded-[22px] border border-borde bg-white p-6">
-        <h2 className="text-lg font-extrabold">{patient.active ? "Desactivar paciente" : "Paciente inactivo"}</h2>
+      {patient.active ? (
+        <section aria-label="Alta" className="rounded-[22px] border border-borde bg-white p-6">
+          <h2 className="text-lg font-extrabold">{discharged ? "Paciente dado de alta" : "Dar de alta"}</h2>
+          <p className="mb-4 mt-1 text-sm font-semibold text-suave">
+            {discharged
+              ? "Terminó su tratamiento. Conserva su cuenta y puede seguir en la Biblioteca, el Foro y la Comunidad, pero no se le agendan turnos."
+              : "Cuando termina el tratamiento. Conserva su cuenta para seguir participando en la Biblioteca, el Foro y la Comunidad; ya no se le agendan turnos."}
+          </p>
+          <DischargeToggle patientId={patient.id} discharged={discharged} name={patient.name} futureTurnos={upcoming.length} />
+        </section>
+      ) : null}
+
+      <section aria-label="Acceso" className="rounded-[22px] border border-borde bg-white p-6">
+        <h2 className="text-lg font-extrabold">{patient.active ? "Bloquear acceso" : "Acceso bloqueado"}</h2>
         <p className="mb-4 mt-1 text-sm font-semibold text-suave">
           {patient.active
-            ? "Deja de poder ingresar y se cierran sus sesiones. Su historial se conserva y podés reactivarlo cuando quieras."
-            : "No puede ingresar. Su historial se conserva. Al reactivarlo, generá un link nuevo para que vuelva a entrar."}
+            ? "Para casos puntuales: deja de poder ingresar a la aplicación y se cierran sus sesiones. Su historial se conserva."
+            : "No puede ingresar. Su historial se conserva. Al desbloquearlo, generá un link nuevo para que vuelva a entrar."}
         </p>
         <ActiveToggle patientId={patient.id} active={patient.active} name={patient.name} />
       </section>

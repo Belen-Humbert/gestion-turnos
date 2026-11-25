@@ -21,12 +21,17 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   role: roleEnum("role").notNull(),
   name: text("name").notNull(),
-  email: text("email").notNull().unique(),
+  // Opcional: hay pacientes que no usan email. Entonces ingresan con el celular.
+  email: text("email").unique(),
   phone: text("phone"),
+  // Celular normalizado (formato de WhatsApp, 549 + 10 dígitos): sirve para ingresar y para no repetir pacientes.
+  phoneKey: text("phone_key").unique(),
   // Null hasta que el paciente acepta la invitación y crea su contraseña.
   passwordHash: text("password_hash"),
-  // Un paciente desactivado conserva su historial pero no puede ingresar.
+  // Un paciente con el acceso bloqueado conserva su historial pero no puede ingresar.
   active: boolean("active").notNull().default(true),
+  // Paciente dado de alta (terminó su tratamiento): conserva la cuenta para seguir en la comunidad, pero ya no tiene turnos.
+  dischargedAt: timestamp("discharged_at", { withTimezone: true }),
   // Preferencias de recordatorio del paciente (el paso 4 las usa para decidir qué enviar).
   remindEmail: boolean("remind_email").notNull().default(true),
   remindPush: boolean("remind_push").notNull().default(true),

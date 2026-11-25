@@ -79,6 +79,11 @@ export async function login(
 export const loginAdmin = (page: Page, base = BASE) =>
   login(page, ADMIN.email, ADMIN.password, base);
 
+// Celular argentino válido y distinto en cada llamada (formato 261 6xx xxxx).
+export function uniqPhone() {
+  return `261 6${String(Math.floor(Math.random() * 1e6)).padStart(6, "0")}`;
+}
+
 export function uniq() {
   return String(Date.now()).slice(-6);
 }

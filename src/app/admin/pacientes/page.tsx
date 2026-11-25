@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { MailIcon, PhoneIcon } from "@/components/icons";
 import { StatusBadge } from "@/components/status-badge";
 import { listPatients, type PatientFilter } from "@/lib/patients";
 import { requireUser } from "@/lib/session";
@@ -8,9 +9,10 @@ export const metadata: Metadata = { title: "Pacientes" };
 
 const FILTERS: { value: PatientFilter; label: string }[] = [
   { value: "todos", label: "Todos" },
-  { value: "activos", label: "Activos" },
+  { value: "activos", label: "En tratamiento" },
   { value: "invitados", label: "Invitación pendiente" },
-  { value: "inactivos", label: "Inactivos" },
+  { value: "alta", label: "Dados de alta" },
+  { value: "bloqueados", label: "Bloqueados" },
 ];
 
 function parseFilter(v: string | string[] | undefined): PatientFilter {
@@ -53,14 +55,14 @@ export default async function PatientsPage({ searchParams }: PageProps<"/admin/p
       <form action="/admin/pacientes" className="flex gap-2.5">
         {filter !== "todos" ? <input type="hidden" name="estado" value={filter} /> : null}
         <label htmlFor="q" className="sr-only">
-          Buscar por nombre o email
+          Buscar por nombre, celular o email
         </label>
         <input
           id="q"
           name="q"
           type="search"
           defaultValue={q}
-          placeholder="Buscar por nombre o email"
+          placeholder="Buscar por nombre, celular o email"
           className="h-12 flex-1 rounded-xl border-[1.5px] border-borde bg-white px-3.5 text-base font-semibold"
         />
         <button className="min-h-12 rounded-xl border-[1.5px] border-borde bg-white px-5 text-sm font-extrabold hover:bg-fondo">
@@ -92,7 +94,7 @@ export default async function PatientsPage({ searchParams }: PageProps<"/admin/p
           </p>
           {!q && filter === "todos" ? (
             <p className="mt-1 text-sm font-semibold text-suave">
-              Agregá el primero y le llega una invitación para crear su contraseña.
+              Agregá el primero y generá su invitación para que cree su contraseña.
             </p>
           ) : null}
         </div>
@@ -109,9 +111,17 @@ export default async function PatientsPage({ searchParams }: PageProps<"/admin/p
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-base font-extrabold">{p.name}</span>
-                  <span className="block truncate text-[13px] font-semibold text-suave">
-                    {p.email}
-                    {p.phone ? ` · ${p.phone}` : ""}
+                  <span className="mt-0.5 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-[13px] font-semibold text-suave">
+                    {p.phone ? (
+                      <span className="inline-flex items-center gap-1.5">
+                        <PhoneIcon size={15} /> {p.phone}
+                      </span>
+                    ) : null}
+                    {p.email ? (
+                      <span className="inline-flex min-w-0 items-center gap-1.5">
+                        <MailIcon size={15} /> <span className="truncate">{p.email}</span>
+                      </span>
+                    ) : null}
                   </span>
                 </span>
                 <StatusBadge status={p.status} />

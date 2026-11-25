@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { phoneKey } from "../src/lib/phone";
 import { randomUUID } from "node:crypto";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -143,7 +144,7 @@ async function main() {
   const passwordHash = await hashPassword(DEMO_PASSWORD);
   const ids: string[] = [];
   for (const [i, p] of PEOPLE.entries()) {
-    const [u] = await db.insert(users).values({ role: "patient", name: p.name, email: `demo${i + 1}@example.com`, phone: p.phone, passwordHash, active: i !== 5 }).returning({ id: users.id });
+    const [u] = await db.insert(users).values({ role: "patient", name: p.name, email: `demo${i + 1}@example.com`, phone: p.phone, phoneKey: phoneKey(p.phone), passwordHash, active: i !== 5 }).returning({ id: users.id });
     ids.push(u.id);
   }
 

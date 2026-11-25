@@ -107,3 +107,59 @@ export const SearchIcon = ({ size = 22 }: P) => (
     <path d="m20 20-3.5-3.5" />
   </svg>
 );
+
+export const PhoneIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+    <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
+    <path d="M11 18.5h2" />
+  </svg>
+);
+
+export const MailIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+    <rect x="3" y="5" width="18" height="14" rx="3" />
+    <path d="m4 7.5 8 6 8-6" />
+  </svg>
+);
+
+export const ClockIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M12 7v5l3 2" />
+  </svg>
+);
+
+export const CheckCircleIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m8 12.5 2.8 2.8L16.5 9.5" />
+  </svg>
+);
+
+export const FlagIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+    <path d="M5 21V4" />
+    <path d="M5 4.5c3-1.5 5 1.5 8 0s4-.5 6 .5v8c-2-1-3-2-6-.5s-5-1.5-8 0" />
+  </svg>
+);
+
+export const BlockIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="m6 6 12 12" />
+  </svg>
+);
+
+export const PinIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+    <path d="M12 21s-6.5-5.7-6.5-11a6.5 6.5 0 0 1 13 0c0 5.3-6.5 11-6.5 11z" />
+    <circle cx="12" cy="10" r="2.3" />
+  </svg>
+);
+
+export const PencilIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+    <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z" />
+    <path d="m13.5 6.5 4 4" />
+  </svg>
+);

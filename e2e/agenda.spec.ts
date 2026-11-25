@@ -12,6 +12,7 @@ import {
   seedDemo,
   sql,
   uniq,
+  uniqPhone,
 } from "./support";
 
 // Agenda: citas, repetición semanal, superposiciones, otros eventos, edición y cancelación.
@@ -44,6 +45,7 @@ test("agenda de Ana", async ({ browser }) => {
   const newPatient = async (name: string, email: string) => {
     await a.goto(`${BASE}/admin/pacientes/nuevo`);
     await a.fill("#name", name);
+    await a.fill("#phone", uniqPhone());
     await a.fill("#email", email);
     await a.click("button[type=submit]");
     await a.waitForSelector("text=Paciente creado");
@@ -53,8 +55,8 @@ test("agenda de Ana", async ({ browser }) => {
   await newPatient(n1, `p1${u}@example.com`);
   await newPatient(n2, `p2${u}@example.com`);
   a.once("dialog", (d) => d.accept());
-  await a.click("button:has-text('Desactivar paciente')");
-  await a.waitForSelector("text=Paciente desactivado");
+  await a.click("button:has-text('Bloquear acceso')");
+  await a.waitForSelector("text=Acceso bloqueado");
 
   const cita = async (
     date: string,

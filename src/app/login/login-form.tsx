@@ -10,10 +10,11 @@ export function LoginForm() {
   return (
     <form action={action} className="flex flex-col gap-4">
       <Field
-        label="Email"
+        label="Email o celular"
         name="email"
-        type="email"
+        type="text"
         autoComplete="username"
+        hint="Si no usás email, escribí tu celular con código de área."
         defaultValue={state?.email}
       />
       <Field label="Contraseña" name="password" type="password" autoComplete="current-password" />

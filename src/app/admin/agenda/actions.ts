@@ -87,9 +87,9 @@ export async function saveEvent(_prev: EventFormState, formData: FormData): Prom
       const [patient] = await db
         .select({ id: users.id })
         .from(users)
-        .where(and(eq(users.id, pid.data), eq(users.role, "patient"), eq(users.active, true)))
+        .where(and(eq(users.id, pid.data), eq(users.role, "patient"), eq(users.active, true), isNull(users.dischargedAt)))
         .limit(1);
-      if (!patient) return fail("El paciente no existe o está inactivo.");
+      if (!patient) return fail("El paciente no existe, está dado de alta o tiene el acceso bloqueado.");
       patientId = patient.id;
     }
   } else {
