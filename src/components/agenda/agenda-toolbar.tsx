@@ -6,8 +6,6 @@ import {
   formatMonth,
   formatRange,
   mondayOf,
-  snapToWeekday,
-  stepWeekday,
   todayYmd,
 } from "@/lib/dates";
 
@@ -15,10 +13,10 @@ export type AgendaViewName = "semana" | "dia" | "mes";
 
 export function AgendaToolbar({ view, date }: { view: AgendaViewName; date: string }) {
   const monday = mondayOf(date);
-  const prev = view === "mes" ? addMonths(date, -1) : view === "semana" ? addDays(monday, -7) : stepWeekday(date, -1);
-  const next = view === "mes" ? addMonths(date, 1) : view === "semana" ? addDays(monday, 7) : stepWeekday(date, 1);
+  const prev = view === "mes" ? addMonths(date, -1) : view === "semana" ? addDays(monday, -7) : addDays(date, -1);
+  const next = view === "mes" ? addMonths(date, 1) : view === "semana" ? addDays(monday, 7) : addDays(date, 1);
   const go = (d: string) => `/admin?vista=${view}&fecha=${d}`;
-  const title = view === "mes" ? formatMonth(date) : view === "semana" ? formatRange(monday, addDays(monday, 4)) : formatLong(date);
+  const title = view === "mes" ? formatMonth(date) : view === "semana" ? formatRange(monday, addDays(monday, 6)) : formatLong(date);
   const unit = view === "mes" ? "Mes" : view === "semana" ? "Semana" : "Día";
 
   const btn =
@@ -56,7 +54,7 @@ export function AgendaToolbar({ view, date }: { view: AgendaViewName; date: stri
         <Link href={go(prev)} className={btn} aria-label={`${unit} anterior`}>
           ←
         </Link>
-        <Link href={go(snapToWeekday(todayYmd()))} className={btn}>
+        <Link href={go(todayYmd())} className={btn}>
           Hoy
         </Link>
         <Link href={go(next)} className={btn} aria-label={`${unit} siguiente`}>
