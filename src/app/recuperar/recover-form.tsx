@@ -20,6 +20,9 @@ export function RecoverForm() {
     <form action={action} className="flex flex-col gap-4">
       <Field label="Email" name="email" type="email" autoComplete="username" defaultValue={state?.email} />
       <FormError message={state?.error} />
+      <p className="text-[13px] font-semibold text-suave">
+        ¿No tenés email? Pedile a Ana un link nuevo por WhatsApp.
+      </p>
       <SubmitButton>Enviarme el link</SubmitButton>
       <a href="/login" className="text-sm font-extrabold text-verde underline">Volver a ingresar</a>
     </form>

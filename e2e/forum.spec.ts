@@ -532,6 +532,7 @@ test("foro completo", async ({ browser }) => {
       .count()) === 1 &&
       (await b.locator("button:text-is('Responder')").count()) === 0,
   );
+  await a.waitForTimeout(2000);
   await a
     .locator("[aria-label='Respuestas a Lucía'] button:text-is('Responder')")
     .click();

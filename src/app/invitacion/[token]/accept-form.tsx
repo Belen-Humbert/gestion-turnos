@@ -4,13 +4,13 @@ import { useActionState } from "react";
 import { acceptInvitation } from "@/app/actions";
 import { Field, FormError, SubmitButton } from "@/components/form-bits";
 
-export function AcceptForm({ token, email }: { token: string; email: string }) {
+export function AcceptForm({ token, email }: { token: string; email: string | null }) {
   const [state, action] = useActionState(acceptInvitation, undefined);
   return (
     <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="token" value={token} />
       {/* Ayuda a los gestores de contraseñas a asociar la cuenta. */}
-      <input type="email" value={email} autoComplete="username" readOnly hidden />
+      <input type="email" value={email ?? ""} autoComplete="username" readOnly hidden />
       <Field
         label="Contraseña"
         name="password"

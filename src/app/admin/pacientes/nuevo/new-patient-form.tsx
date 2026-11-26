@@ -37,15 +37,22 @@ export function NewPatientForm() {
   return (
     <form action={action} className="flex flex-col gap-4 rounded-[22px] border border-borde bg-white p-6">
       <Field label="Nombre y apellido" name="name" autoComplete="off" defaultValue={state?.values?.name} />
-      <Field label="Email" name="email" type="email" autoComplete="off" defaultValue={state?.values?.email} />
       <Field
-        label="Celular (opcional)"
+        label="Celular"
         name="phone"
         type="tel"
         autoComplete="off"
-        required={false}
         defaultValue={state?.values?.phone}
-        hint="Con código de área, por ejemplo 261 555 0123. Se usa para el botón de WhatsApp."
+        hint="Con código de área, por ejemplo 261 555 0123. Por acá se comunica Ana con el paciente, y con este número ingresa a la app si no tiene email."
+      />
+      <Field
+        label="Email (opcional)"
+        name="email"
+        type="email"
+        autoComplete="off"
+        required={false}
+        defaultValue={state?.values?.email}
+        hint="Si no tiene, no pasa nada: ingresa con su celular."
       />
       <FormError message={state?.error} />
       <SubmitButton>Guardar y generar invitación</SubmitButton>

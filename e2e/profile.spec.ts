@@ -53,7 +53,7 @@ test("perfil de la paciente", async ({ browser }) => {
   );
   await a.fill("#phone", "+54 261 600-1234");
   await sub(a, "Guardar celular", "Mis datos");
-  await a.waitForSelector("text=Teléfono guardado.");
+  await a.waitForSelector("text=Celular guardado.");
   check(
     "teléfono guardado",
     await waitFor(
@@ -62,16 +62,14 @@ test("perfil de la paciente", async ({ browser }) => {
         "+54 261 600-1234",
     ),
   );
+  // el celular es obligatorio: no se puede dejar vacío
   await a.fill("#phone", "");
+  await a.evaluate(() => ((document.querySelector("#phone") as HTMLInputElement).required = false));
   await sub(a, "Guardar celular", "Mis datos");
-  await a.waitForSelector("text=Teléfono guardado.");
+  await a.waitForFunction(() => document.querySelector("[role=alert]")?.textContent?.includes("celular"));
   check(
-    "un teléfono vacío se guarda como nulo",
-    await waitFor(
-      async () =>
-        (await sql(`select phone is null from users where email='${m2}'`)) ===
-        "t",
-    ),
+    "un celular vacío se rechaza y no se borra",
+    (await sql(`select phone from users where email='${m2}'`)) === "+54 261 600-1234",
   );
   check(
     "no tocó el teléfono de otro paciente",

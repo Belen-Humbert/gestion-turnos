@@ -77,10 +77,12 @@ export default async function Page({ searchParams }: PageProps<"/paciente/perfil
               <dt className="text-sm font-extrabold text-suave">Nombre</dt>
               <dd className="text-[15px] font-bold">{me.name}</dd>
             </div>
-            <div>
-              <dt className="text-sm font-extrabold text-suave">Email</dt>
-              <dd className="break-all text-[15px] font-bold">{me.email}</dd>
-            </div>
+            {me.email ? (
+              <div>
+                <dt className="text-sm font-extrabold text-suave">Email</dt>
+                <dd className="break-all text-[15px] font-bold">{me.email}</dd>
+              </div>
+            ) : null}
           </dl>
           <PhoneForm phone={me.phone ?? ""} />
         </Card>

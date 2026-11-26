@@ -1,5 +1,5 @@
 import { test } from "@playwright/test";
-import { BASE, check, closeDb, loginAdmin, sql, uniq } from "./support";
+import { BASE, check, closeDb, loginAdmin, sql, uniq, uniqPhone } from "./support";
 
 // Invitación → contraseña → ingreso, permisos básicos, cookies y cabeceras de seguridad.
 test.afterAll(closeDb);
@@ -21,6 +21,7 @@ test("autenticación e invitaciones", async ({ browser }) => {
   // Ana da de alta a la paciente y copia su link de invitación
   await a.goto(`${BASE}/admin/pacientes/nuevo`);
   await a.fill("#name", "Lucía Auth");
+  await a.fill("#phone", uniqPhone());
   await a.fill("#email", email);
   await a.click("button[type=submit]");
   await a.waitForSelector("text=Paciente creado");

@@ -56,7 +56,7 @@ export async function runReminders(opts: { now?: Date; senders?: Partial<Senders
       const input = { name: r.name, startsAt: r.startsAt, location: r.location, now };
       if (r.remindEmail && r.email) {
         await deliver(r.eventId, kind, "email", summary, async () => {
-          return senders.email({ to: r.email, ...emailContent({ ...input, appUrl }) });
+          return senders.email({ to: r.email!, ...emailContent({ ...input, appUrl }) });
         });
       }
       if (r.remindPush) {

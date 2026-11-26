@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { phoneKey } from "../src/lib/phone";
 import { inArray, like } from "drizzle-orm";
 import { db, pool } from "../src/db";
 import { changeRequests, events, forumComments, invitations, patientNotes, sessions, users } from "../src/db/schema";
@@ -42,7 +43,7 @@ async function main() {
     const email = `demo${i + 1}@example.com`;
     const [user] = await db
       .insert(users)
-      .values({ role: "patient", name: p.name, email, phone: p.phone, passwordHash, active: i !== 5 })
+      .values({ role: "patient", name: p.name, email, phone: p.phone, phoneKey: phoneKey(p.phone), passwordHash, active: i !== 5 })
       .onConflictDoNothing()
       .returning({ id: users.id });
     if (!user) continue; // ya existía

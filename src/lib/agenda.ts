@@ -57,7 +57,7 @@ export async function listBookablePatients() {
   return db
     .select({ id: users.id, name: users.name })
     .from(users)
-    .where(and(eq(users.role, "patient"), eq(users.active, true)))
+    .where(and(eq(users.role, "patient"), eq(users.active, true), isNull(users.dischargedAt)))
     .orderBy(asc(sql`lower(${users.name})`));
 }
 

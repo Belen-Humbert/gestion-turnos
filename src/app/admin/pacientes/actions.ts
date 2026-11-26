@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { sessions, users } from "@/db/schema";
 import { createInvitation, invitationUrl } from "@/lib/invitations";
+import { phoneKey } from "@/lib/phone";
 import { deletePendingInvitations } from "@/lib/patients";
 import { requireUser } from "@/lib/session";
 import { invitationMessage, whatsappLink } from "@/lib/whatsapp";
@@ -22,23 +23,34 @@ function typed(formData: FormData): Values {
   return { name: get("name"), email: get("email"), phone: get("phone") };
 }
 
+// El celular es obligatorio (es como Ana se comunica con el paciente y, si no tiene email, con lo que ingresa).
+// El email es opcional.
 const patientSchema = z.object({
   name: z.string().trim().min(2, "Escribí el nombre del paciente.").max(120),
-  email: z.string().trim().toLowerCase().email("El email no es válido.").max(200),
   phone: z
     .string()
     .trim()
+    .min(1, "Escribí el celular del paciente.")
     .max(30)
-    .regex(/^[0-9+()\-\s]*$/, "El teléfono solo puede tener números, espacios, + y guiones.")
-    .optional()
+    .regex(/^[0-9+()\-\s]*$/, "El celular solo puede tener números, espacios, + y guiones.")
+    .refine((v) => phoneKey(v) !== null, "El celular tiene que llevar el código de área, por ejemplo 261 555 0123."),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(200)
+    .refine((v) => v === "" || z.string().email().safeParse(v).success, "El email no es válido.")
     .transform((v) => v || null),
 });
 
 const idSchema = z.string().uuid();
 
-function isUniqueViolation(e: unknown) {
-  const err = e as { code?: string; cause?: { code?: string } };
-  return err?.code === "23505" || err?.cause?.code === "23505";
+function uniqueViolation(e: unknown): string | null {
+  const err = e as { code?: string; constraint?: string; cause?: { code?: string; constraint?: string } };
+  const code = err?.code ?? err?.cause?.code;
+  if (code !== "23505") return null;
+  const constraint = err?.constraint ?? err?.cause?.constraint ?? "";
+  return constraint.includes("phone") ? "Ya existe un paciente con ese celular." : "Ya existe una persona con ese email.";
 }
 
 function buildInvite(name: string, phone: string | null, token: string): Invite {
@@ -57,12 +69,16 @@ export async function createPatient(_prev: PatientFormState, formData: FormData)
   const { name, email, phone } = parsed.data;
 
   try {
-    const [patient] = await db.insert(users).values({ role: "patient", name, email, phone }).returning();
+    const [patient] = await db
+      .insert(users)
+      .values({ role: "patient", name, email, phone, phoneKey: phoneKey(phone) })
+      .returning();
     const token = await createInvitation(patient.id);
     revalidatePath("/admin/pacientes");
     return { patientId: patient.id, invite: buildInvite(name, phone, token) };
   } catch (e) {
-    if (isUniqueViolation(e)) return { error: "Ya existe una persona con ese email.", values: typed(formData) };
+    const dup = uniqueViolation(e);
+    if (dup) return { error: dup, values: typed(formData) };
     throw e;
   }
 }
@@ -81,12 +97,13 @@ export async function updatePatient(_prev: PatientFormState, formData: FormData)
   try {
     const updated = await db
       .update(users)
-      .set(parsed.data)
+      .set({ ...parsed.data, phoneKey: phoneKey(parsed.data.phone) })
       .where(and(eq(users.id, id.data), eq(users.role, "patient")))
       .returning({ id: users.id });
     if (updated.length === 0) return { error: "Paciente no encontrado." };
   } catch (e) {
-    if (isUniqueViolation(e)) return { error: "Ya existe una persona con ese email.", values: typed(formData) };
+    const dup = uniqueViolation(e);
+    if (dup) return { error: dup, values: typed(formData) };
     throw e;
   }
   revalidatePath("/admin/pacientes");
@@ -106,7 +123,7 @@ export async function newInvitation(_prev: PatientFormState, formData: FormData)
     .where(and(eq(users.id, id.data), eq(users.role, "patient")))
     .limit(1);
   if (!patient) return { error: "Paciente no encontrado." };
-  if (!patient.active) return { error: "El paciente está inactivo. Reactivalo antes de invitarlo." };
+  if (!patient.active) return { error: "El paciente tiene el acceso bloqueado. Desbloquealo antes de invitarlo." };
   const token = await createInvitation(patient.id);
   return { invite: buildInvite(patient.name, patient.phone, token) };
 }
@@ -131,5 +148,24 @@ export async function setPatientActive(_prev: PatientFormState, formData: FormDa
   }
   revalidatePath("/admin/pacientes");
   revalidatePath(`/admin/pacientes/${id.data}`);
-  return { ok: active ? "Paciente reactivado." : "Paciente desactivado. Su historial se conserva." };
+  return { ok: active ? "Acceso desbloqueado." : "Acceso bloqueado. Su historial se conserva." };
+}
+
+// Dar de alta: terminó el tratamiento. Conserva la cuenta (sigue en Biblioteca, Foro y Comunidad)
+// pero ya no se le agendan turnos. Reabrir el tratamiento lo vuelve a dejar en tratamiento.
+export async function setPatientDischarged(_prev: PatientFormState, formData: FormData): Promise<PatientFormState> {
+  await requireUser("admin");
+  const id = idSchema.safeParse(formData.get("id"));
+  if (!id.success) return { error: "Paciente no encontrado." };
+  const discharged = formData.get("discharged") === "true";
+  const updated = await db
+    .update(users)
+    .set({ dischargedAt: discharged ? new Date() : null })
+    .where(and(eq(users.id, id.data), eq(users.role, "patient")))
+    .returning({ id: users.id });
+  if (updated.length === 0) return { error: "Paciente no encontrado." };
+  revalidatePath("/admin/pacientes");
+  revalidatePath(`/admin/pacientes/${id.data}`);
+  revalidatePath("/admin", "layout");
+  return { ok: discharged ? "Paciente dado de alta. Conserva su cuenta." : "Tratamiento reabierto." };
 }

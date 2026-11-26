@@ -23,9 +23,8 @@ export function PhoneForm({ phone }: { phone: string }) {
         name="phone"
         type="tel"
         autoComplete="tel"
-        required={false}
         defaultValue={state?.values?.phone ?? phone}
-        hint="Es opcional. Lo usa el consultorio para comunicarse con vos."
+        hint="El consultorio se comunica con vos por acá. Con este número también podés ingresar a la aplicación."
       />
       <FormError message={state?.error} />
       <Ok state={state} />

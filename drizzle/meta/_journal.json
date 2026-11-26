@@ -85,6 +85,13 @@
       "when": 1794756352029,
       "tag": "0011_seguridad_recuperacion_rate_limit",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1795644996716,
+      "tag": "0012_pacientes_celular_alta",
+      "breakpoints": true
     }
   ]
 }

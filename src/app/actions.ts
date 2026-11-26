@@ -7,6 +7,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { invitations, users } from "@/db/schema";
 import { findValidInvitation } from "@/lib/invitations";
+import { parseLoginId } from "@/lib/phone";
 import { getDummyHash, hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from "@/lib/password";
 import { clearAttempts, isLimited, registerFailure } from "@/lib/rate-limit";
 import { createSession, destroySession, homeFor } from "@/lib/session";
@@ -14,7 +15,7 @@ import { createSession, destroySession, homeFor } from "@/lib/session";
 export type FormState = { error?: string; email?: string } | undefined;
 
 const loginSchema = z.object({
-  email: z.string().trim().toLowerCase().email(),
+  email: z.string().trim().min(1).max(200),
   password: z.string().min(1),
 });
 
@@ -24,20 +25,29 @@ export async function login(_prev: FormState, formData: FormData): Promise<FormS
     password: formData.get("password"),
   });
   const typedEmail = String(formData.get("email") ?? "");
-  if (!parsed.success) return { error: "Revisá el email y la contraseña.", email: typedEmail };
+  if (!parsed.success) return { error: "Revisá tu email o celular y la contraseña.", email: typedEmail };
 
-  const { email, password } = parsed.data;
+  const { password } = parsed.data;
+  // Se ingresa con el email o con el celular. Si no se entiende ninguno, se responde igual que un dato incorrecto.
+  const id = parseLoginId(parsed.data.email);
+  const email = id ? `${id.kind}:${id.value}` : `raw:${parsed.data.email.toLowerCase()}`;
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
   const key = `${ip}|${email}`;
   if (await isLimited(key)) {
-    return { error: "Demasiados intentos. Probá de nuevo en unos minutos.", email };
+    return { error: "Demasiados intentos. Probá de nuevo en unos minutos.", email: typedEmail };
   }
 
-  const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const [user] = id
+    ? await db
+        .select()
+        .from(users)
+        .where(id.kind === "email" ? eq(users.email, id.value) : eq(users.phoneKey, id.value))
+        .limit(1)
+    : [];
   const valid = await verifyPassword(password, user?.passwordHash ?? (await getDummyHash()));
   if (!user || !user.passwordHash || !user.active || !valid) {
     await registerFailure(key);
-    return { error: "Email o contraseña incorrectos.", email };
+    return { error: "Email, celular o contraseña incorrectos.", email: typedEmail };
   }
 
   await clearAttempts(key);

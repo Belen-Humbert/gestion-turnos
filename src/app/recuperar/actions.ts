@@ -40,9 +40,9 @@ export async function requestReset(_prev: RecoverState, formData: FormData): Pro
       .from(users)
       .where(and(eq(users.email, email), eq(users.active, true), isNotNull(users.passwordHash)))
       .limit(1);
-    if (!user) return;
+    if (!user || !user.email) return;
     const token = await createPasswordReset(user.id);
-    await sendMail({ to: user.email, ...passwordResetEmail(user.name, resetUrl(token)) }).catch(() => {});
+    await sendMail({ to: user.email!, ...passwordResetEmail(user.name, resetUrl(token)) }).catch(() => {});
   });
   return { sent: true, email };
 }
