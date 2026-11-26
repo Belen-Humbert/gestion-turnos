@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { cancelEvent, saveEvent } from "@/app/admin/agenda/actions";
 import { FormError, SubmitButton } from "@/components/form-bits";
+import { PatientPicker, type PickerPatient } from "./patient-picker";
 
 const inputCls = "h-12 rounded-xl border-[1.5px] border-borde bg-white px-3.5 text-base font-semibold";
 const labelCls = "text-sm font-extrabold";
@@ -37,10 +38,11 @@ export function EventForm({
   onPatientChange,
 }: {
   defaults: EventDefaults;
-  patients?: { id: string; name: string }[];
+  patients?: PickerPatient[];
   onPatientChange?: (id: string) => void;
 }) {
   const [state, action] = useActionState(saveEvent, undefined);
+  const [patientId, setPatientId] = useState(state?.values?.patientId ?? defaults.patientId ?? "");
   const editing = Boolean(defaults.id);
   const isAppointment = defaults.kind === "appointment";
   const v = (k: string, fallback: string) => state?.values?.[k] ?? fallback;
@@ -67,22 +69,16 @@ export function EventForm({
             .
           </p>
         ) : (
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="patientId" className={labelCls}>Paciente</label>
-            <select
-              id="patientId"
-              name="patientId"
-              required
-              defaultValue={v("patientId", defaults.patientId ?? "")}
-              onChange={(e) => onPatientChange?.(e.target.value)}
-              className={inputCls}
-            >
-              <option value="" disabled>Elegí un paciente</option>
-              {patients.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
+          <PatientPicker
+            patients={patients}
+            value={patientId}
+            onChange={(id) => {
+              setPatientId(id);
+              onPatientChange?.(id);
+            }}
+            inputCls={inputCls}
+            labelCls={labelCls}
+          />
         )
       ) : (
         <div className="flex flex-col gap-1.5">

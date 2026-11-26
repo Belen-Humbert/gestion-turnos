@@ -77,7 +77,7 @@ test("vista de mes", async ({ browser }) => {
   check(
     "tocar un día abre la vista día",
     a.url().includes(`fecha=${wed}`) &&
-      (await a.locator("a[href^='/admin/agenda/']:visible").count()) === 5,
+      (await a.locator("a[href^='/admin/agenda/']:not([href*='/cita/']):not([href*='/evento/']):visible").count()) === 5,
   );
 
   await a.goto(`${BASE}/admin?vista=mes&fecha=${mon}`);

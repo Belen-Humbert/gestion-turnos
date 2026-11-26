@@ -13,6 +13,7 @@ import {
   sql,
   uniq,
   uniqPhone,
+  pickPatient,
 } from "./support";
 
 // Agenda: citas, repetición semanal, superposiciones, otros eventos, edición y cancelación.
@@ -35,7 +36,7 @@ test("agenda de Ana", async ({ browser }) => {
   await loginAdmin(a);
   await a.waitForURL("**/admin");
   const blocks = (pg: typeof a) =>
-    pg.locator("a[href^='/admin/agenda/']:visible").count();
+    pg.locator("a[href^='/admin/agenda/']:not([href*='/cita/']):not([href*='/evento/']):visible").count();
   const submitError = (text: string) =>
     a.waitForFunction(
       (t) => document.querySelector("[role=alert]")?.textContent?.includes(t),
@@ -67,7 +68,7 @@ test("agenda de Ana", async ({ browser }) => {
     note = "",
   ) => {
     await a.goto(`${BASE}/admin/agenda/cita/nueva?fecha=${date}`);
-    await a.selectOption("#patientId", { label: name });
+    await pickPatient(a, name);
     await a.fill("#date", date);
     await a.fill("#start", start);
     await a.selectOption("#duration", dur);
@@ -89,8 +90,22 @@ test("agenda de Ana", async ({ browser }) => {
   const opts = await a.locator("#patientId option").allInnerTexts();
   check(
     "el desplegable incluye activos y excluye inactivos",
-    opts.includes(n1) && !opts.includes(n2),
+    opts.some((o) => o.startsWith(n1)) && !opts.some((o) => o.startsWith(n2)),
   );
+  // buscador de pacientes: filtra por nombre (sin importar tildes) y por celular
+  await a.fill("#patientSearch", "lucia fernandez");
+  const filtered = await a.locator("#patientId option").allInnerTexts();
+  check("el buscador filtra por nombre sin importar tildes", filtered.length === 1 && filtered[0].startsWith("Lucía Fernández"));
+  await a.fill("#patientSearch", "261 555 0102");
+  const byPhone = await a.locator("#patientId option").allInnerTexts();
+  check("el buscador filtra por celular", byPhone.length === 1 && byPhone[0].startsWith("Martín Giménez"));
+  await a.fill("#patientSearch", "zzzz");
+  check("sin coincidencias avisa", (await a.locator("text=Nadie coincide").count()) === 1);
+  // botón directo desde el panel
+  await a.goto(`${BASE}/admin`);
+  await a.click("a:has-text('Agendar cita')");
+  await a.waitForURL("**/admin/agenda/cita/nueva**");
+  check("el panel tiene el botón directo «Agendar cita»", true);
 
   // cita con repetición de 4 semanas
   await cita(mon, "10:00", "50", "4", n1, "Traer el registro");
@@ -161,7 +176,7 @@ test("agenda de Ana", async ({ browser }) => {
   await a.goto(`${BASE}/admin?vista=dia&fecha=${tue}`);
   check(
     "otro evento visible en azul",
-    (await a.locator("a[href^='/admin/agenda/'].bg-azul:visible").count()) ===
+    (await a.locator("a[href^='/admin/agenda/']:not([href*='/cita/']):not([href*='/evento/']).bg-azul:visible").count()) ===
       1,
   );
   await otro("Reunión", tue, "12:00", "14:00");
@@ -198,7 +213,7 @@ test("agenda de Ana", async ({ browser }) => {
 
   // cancelar «este y los siguientes»
   await a.goto(`${BASE}/admin?fecha=${mon2}`);
-  await a.locator("a[href^='/admin/agenda/']:visible").first().click();
+  await a.locator("a[href^='/admin/agenda/']:not([href*='/cita/']):not([href*='/evento/']):visible").first().click();
   await a.waitForURL("**/admin/agenda/*");
   check(
     "la nota privada se ve en el detalle",
@@ -252,7 +267,7 @@ test("agenda de Ana", async ({ browser }) => {
   await mp.goto(`${BASE}/admin?fecha=${mon}`);
   check(
     "celular: lista por día con la cita",
-    (await mp.locator("a[href^='/admin/agenda/']:visible").count()) >= 1 &&
+    (await mp.locator("a[href^='/admin/agenda/']:not([href*='/cita/']):not([href*='/evento/']):visible").count()) >= 1 &&
       (await mp.innerText("main")).includes(n1),
   );
 

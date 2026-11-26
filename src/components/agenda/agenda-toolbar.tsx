@@ -29,25 +29,20 @@ export function AgendaToolbar({ view, date }: { view: AgendaViewName; date: stri
           <h1 className="text-3xl font-extrabold">Agenda</h1>
           <p className="mt-1 text-[15px] font-semibold first-letter:uppercase text-suave">{title}</p>
         </div>
-        <details className="relative">
-          <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-2xl bg-verde px-5 text-[15px] font-extrabold text-white hover:bg-verde-oscuro [&::-webkit-details-marker]:hidden">
-            <span aria-hidden="true" className="text-xl leading-none">+</span> Agregar
-          </summary>
-          <div className="absolute right-0 z-10 mt-2 flex w-56 flex-col gap-1 rounded-2xl border border-borde bg-white p-2 shadow-lg">
-            <Link
-              href={`/admin/agenda/cita/nueva?fecha=${date}`}
-              className="flex min-h-12 items-center rounded-xl px-3 text-[15px] font-extrabold hover:bg-verde-claro"
-            >
-              Agregar cita
-            </Link>
-            <Link
-              href={`/admin/agenda/evento/nuevo?fecha=${date}`}
-              className="flex min-h-12 items-center rounded-xl px-3 text-[15px] font-extrabold hover:bg-azul"
-            >
-              Otro evento
-            </Link>
-          </div>
-        </details>
+        <div className="flex flex-wrap gap-2.5">
+          <Link
+            href={`/admin/agenda/cita/nueva?fecha=${date}`}
+            className="flex min-h-12 items-center gap-2 rounded-2xl bg-verde px-5 text-[15px] font-extrabold text-white hover:bg-verde-oscuro"
+          >
+            <span aria-hidden="true" className="text-xl leading-none">+</span> Agendar cita
+          </Link>
+          <Link
+            href={`/admin/agenda/evento/nuevo?fecha=${date}`}
+            className="flex min-h-12 items-center rounded-2xl border-[1.5px] border-borde bg-white px-4 text-[15px] font-extrabold hover:bg-azul"
+          >
+            Otro evento
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
