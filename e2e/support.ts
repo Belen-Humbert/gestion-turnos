@@ -84,6 +84,13 @@ export function uniqPhone() {
   return `261 6${String(Math.floor(Math.random() * 1e6)).padStart(6, "0")}`;
 }
 
+// Elige un paciente en «Agendar cita» usando el buscador.
+export async function pickPatient(page: Page, name: string) {
+  await page.fill("#patientSearch", name);
+  const value = await page.locator("#patientId option", { hasText: name }).first().getAttribute("value");
+  await page.selectOption("#patientId", value!);
+}
+
 export function uniq() {
   return String(Date.now()).slice(-6);
 }

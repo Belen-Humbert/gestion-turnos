@@ -1,5 +1,5 @@
 import { test } from "@playwright/test";
-import { BASE, check, DEMO_PASSWORD, clearEvents, closeDb, loginAdmin, seedDemo, sql, waitFor } from "./support";
+import { BASE, check, pickPatient, DEMO_PASSWORD, clearEvents, closeDb, loginAdmin, seedDemo, sql, waitFor } from "./support";
 
 // Pago por turno: marcar efectivo / transferencia / pendiente, aviso al agendar el siguiente, historial y agenda.
 test.afterAll(closeDb);
@@ -31,20 +31,20 @@ test("pagos: marcar el pago, aviso al agendar y pendientes", async ({ browser })
   // al agendar el siguiente turno avisa de los anteriores sin pagar
   await a.goto(`${BASE}/admin/agenda/cita/nueva`);
   check("sin paciente elegido no hay aviso", (await a.locator("[aria-label='Pagos pendientes del paciente']").count()) === 0);
-  await a.selectOption("#patientId", { label: "Lucía Fernández" });
+  await pickPatient(a, "Lucía Fernández");
   const notice = a.locator("[aria-label='Pagos pendientes del paciente']");
   await notice.waitFor();
   check("avisa que Lucía tiene 2 turnos sin pagar", (await notice.innerText()).includes("2 turnos anteriores sin pagar"));
-  await a.selectOption("#patientId", { label: "Tomás Herrera" });
+  await pickPatient(a, "Tomás Herrera");
   check("un paciente sin turnos no muestra el aviso", await waitFor(async () => (await notice.count()) === 0));
-  await a.selectOption("#patientId", { label: "Martín Giménez" });
+  await pickPatient(a, "Martín Giménez");
   await notice.waitFor();
   check("avisa el turno anterior de Martín", (await notice.innerText()).includes("El turno anterior de Martín quedó sin pagar"));
-  await a.selectOption("#patientId", { label: "Sofía Rodríguez" });
+  await pickPatient(a, "Sofía Rodríguez");
   check("un turno futuro no cuenta como deuda", await waitFor(async () => (await notice.count()) === 0));
 
   // se resuelve desde el aviso
-  await a.selectOption("#patientId", { label: "Lucía Fernández" });
+  await pickPatient(a, "Lucía Fernández");
   await notice.waitFor();
   await notice.locator("button:has-text('Pagó efectivo')").first().click();
   check(

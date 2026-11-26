@@ -10,6 +10,7 @@ import {
   sql,
   uniq,
   uniqPhone,
+  pickPatient,
 } from "./support";
 
 // Notas privadas: solo las ve Ana, nunca la paciente.
@@ -73,7 +74,7 @@ test("notas privadas del paciente", async ({ browser }) => {
   const hh = String(8 + (Number(u) % 10)).padStart(2, "0");
   const mm = String((Math.floor(Number(u) / 10) % 12) * 5).padStart(2, "0");
   await a.goto(`${BASE}/admin/agenda/cita/nueva?fecha=${day}`);
-  await a.selectOption("#patientId", { label: name });
+  await pickPatient(a, name);
   await a.fill("#date", day);
   await a.fill("#start", `${hh}:${mm}`);
   await a.fill("#note", "Nota desde la cita");
@@ -109,7 +110,7 @@ test("notas privadas del paciente", async ({ browser }) => {
 
   // cita cancelada: su nota deja de listarse
   await a.goto(`${BASE}/admin?vista=dia&fecha=${day}`);
-  await a.locator("a[href^='/admin/agenda/']:visible").first().click();
+  await a.locator("a[href^='/admin/agenda/']:not([href*='/cita/']):not([href*='/evento/']):visible").first().click();
   a.once("dialog", (d) => d.accept());
   await a.click("button:has-text('Cancelar cita')");
   await a.waitForURL("**/admin?fecha=*");

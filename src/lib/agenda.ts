@@ -58,7 +58,7 @@ export async function getEvent(id: string): Promise<(AgendaEvent & { cancelledAt
 
 export async function listBookablePatients() {
   return db
-    .select({ id: users.id, name: users.name })
+    .select({ id: users.id, name: users.name, phone: users.phone })
     .from(users)
     .where(and(eq(users.role, "patient"), eq(users.active, true), isNull(users.dischargedAt)))
     .orderBy(asc(sql`lower(${users.name})`));

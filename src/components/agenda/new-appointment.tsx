@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { PickerPatient } from "./patient-picker";
 import { EventForm, type EventDefaults } from "./event-form";
 import { PendingPaymentNotice, type PendingTurno } from "./pending-payment-notice";
 
@@ -11,7 +12,7 @@ export function NewAppointment({
   pending,
 }: {
   defaults: EventDefaults;
-  patients: { id: string; name: string }[];
+  patients: PickerPatient[];
   pending: Record<string, PendingTurno[]>;
 }) {
   const [patientId, setPatientId] = useState(defaults.patientId ?? "");
