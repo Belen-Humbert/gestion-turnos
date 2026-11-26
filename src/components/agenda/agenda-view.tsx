@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { AgendaEvent } from "@/lib/agenda";
 import { addDays, dateToHm, dateToYmd, formatLong, formatShort, mondayOf, todayYmd } from "@/lib/dates";
+import { ScrollToHour } from "./scroll-to-hour";
 import { eventTone } from "./styles";
 
 const HOUR_PX = 56;
@@ -30,20 +31,23 @@ function EventBlock({ e, startMin }: { e: AgendaEvent; startMin: number }) {
 
 function Grid({ days, events, view }: { days: string[]; events: AgendaEvent[]; view: "semana" | "dia" }) {
   const today = todayYmd();
-  // La grilla va de 8 a 20 y se estira (hasta las 24 h) si hay eventos fuera de ese horario.
-  const mins = events.flatMap((e) => [toMin(dateToHm(e.startsAt)), toMin(dateToHm(e.endsAt))]);
-  const startHour = Math.min(8, mins.length ? Math.floor(Math.min(...mins) / 60) : 8);
-  const endHour = Math.max(20, mins.length ? Math.ceil(Math.max(...mins) / 60) : 20);
-  const startMin = startHour * 60;
+  // La grilla cubre las 24 h. Se abre posicionada en el horario habitual (o antes, si hay eventos más temprano).
+  const startHour = 0;
+  const endHour = 24;
+  const startMin = 0;
+  const firstHour = events.length ? Math.floor(Math.min(...events.map((e) => toMin(dateToHm(e.startsAt)))) / 60) : 8;
+  const scrollTo = Math.max(0, Math.min(7, firstHour - 1)) * HOUR_PX;
   const hours = Array.from({ length: endHour - startHour }, (_, i) => startHour + i);
   const height = hours.length * HOUR_PX;
 
   return (
     <div
-      className={`${view === "semana" ? "hidden md:block" : ""} overflow-x-auto rounded-[18px] border border-borde bg-white`}
+      data-agenda-scroll
+      className={`${view === "semana" ? "hidden md:block" : ""} max-h-[75vh] overflow-auto rounded-[18px] border border-borde bg-white`}
     >
+      <ScrollToHour px={scrollTo} />
       <div className="min-w-[760px]">
-        <div className="flex border-b border-borde">
+        <div className="sticky top-0 z-20 flex border-b border-borde bg-white">
           <div className="w-14 shrink-0" />
           {days.map((d) => (
             <Link
@@ -63,7 +67,7 @@ function Grid({ days, events, view }: { days: string[]; events: AgendaEvent[]; v
             {hours.map((h) => (
               <span
                 key={h}
-                style={{ top: (h - startHour) * HOUR_PX - 8 }}
+                style={{ top: Math.max((h - startHour) * HOUR_PX - 8, 2) }}
                 className="absolute right-2 text-xs font-bold text-suave"
               >
                 {h > startHour ? `${String(h).padStart(2, "0")}:00` : ""}
