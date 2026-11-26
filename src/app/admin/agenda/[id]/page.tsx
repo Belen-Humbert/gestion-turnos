@@ -3,7 +3,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { CancelForm, EventForm } from "@/components/agenda/event-form";
+import { PaymentButtons } from "@/components/agenda/payment-buttons";
 import { eventTone } from "@/components/agenda/styles";
+import { CoinIcon } from "@/components/icons";
+import { PAYMENT_LABEL } from "@/lib/payments";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
@@ -71,6 +74,22 @@ export default async function EventPage({ params }: PageProps<"/admin/agenda/[id
           <p className="mt-1 text-xs font-bold text-[#5e3f00]">
             Al cambiar el horario, el pedido se marca como atendido.
           </p>
+        </section>
+      ) : null}
+
+      {isAppointment ? (
+        <section aria-label="Pago" className="rounded-[22px] border border-borde bg-white p-6">
+          <h2 className="mb-1 flex items-center gap-2 text-lg font-extrabold">
+            <span aria-hidden className="text-verde">
+              <CoinIcon size={22} />
+            </span>
+            Pago
+          </h2>
+          <p className="mb-4 text-sm font-semibold text-suave">
+            Estado actual: <strong>{PAYMENT_LABEL[event.paymentStatus]}</strong>
+            {!isFuture && event.paymentStatus === "pending" ? " · el turno ya pasó y no figura como pagado" : ""}
+          </p>
+          <PaymentButtons eventId={event.id} status={event.paymentStatus} />
         </section>
       ) : null}
 

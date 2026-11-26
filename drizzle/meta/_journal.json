@@ -92,6 +92,13 @@
       "when": 1795644996716,
       "tag": "0012_pacientes_celular_alta",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1795733888099,
+      "tag": "0013_pago_por_turno",
+      "breakpoints": true
     }
   ]
 }

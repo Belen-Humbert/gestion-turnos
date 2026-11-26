@@ -34,9 +34,11 @@ const REPEATS = [
 export function EventForm({
   defaults,
   patients = [],
+  onPatientChange,
 }: {
   defaults: EventDefaults;
   patients?: { id: string; name: string }[];
+  onPatientChange?: (id: string) => void;
 }) {
   const [state, action] = useActionState(saveEvent, undefined);
   const editing = Boolean(defaults.id);
@@ -72,6 +74,7 @@ export function EventForm({
               name="patientId"
               required
               defaultValue={v("patientId", defaults.patientId ?? "")}
+              onChange={(e) => onPatientChange?.(e.target.value)}
               className={inputCls}
             >
               <option value="" disabled>Elegí un paciente</option>

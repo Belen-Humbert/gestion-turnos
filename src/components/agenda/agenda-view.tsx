@@ -1,6 +1,8 @@
 import Link from "next/link";
 import type { AgendaEvent } from "@/lib/agenda";
 import { addDays, dateToHm, dateToYmd, formatLong, formatShort, mondayOf, todayYmd } from "@/lib/dates";
+import { CoinIcon } from "@/components/icons";
+import { isOverdue } from "@/lib/payments";
 import { ScrollToHour } from "./scroll-to-hour";
 import { eventTone } from "./styles";
 
@@ -25,6 +27,11 @@ function EventBlock({ e, startMin }: { e: AgendaEvent; startMin: number }) {
       <span className="block truncate font-semibold opacity-80">
         {dateToHm(e.startsAt)} – {dateToHm(e.endsAt)}
       </span>
+      {isOverdue(e) && height >= 44 ? (
+        <span className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-white/70 px-1.5 text-[11px] font-extrabold text-[#8a3b00]">
+          <CoinIcon size={12} /> Sin pagar
+        </span>
+      ) : null}
     </Link>
   );
 }
@@ -128,6 +135,11 @@ function DayList({ days, events }: { days: string[]; events: AgendaEvent[] }) {
                           <span className="block truncate text-[15px] font-extrabold">{e.title}</span>
                           <span className="block text-xs font-bold opacity-80">{tone.label}</span>
                         </span>
+                        {isOverdue(e) ? (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 text-xs font-extrabold text-[#8a3b00]">
+                            <CoinIcon size={14} /> Sin pagar
+                          </span>
+                        ) : null}
                       </Link>
                     </li>
                   );

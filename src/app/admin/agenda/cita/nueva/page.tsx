@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { EventForm } from "@/components/agenda/event-form";
-import { listBookablePatients } from "@/lib/agenda";
-import { isHm, isYmd, todayYmd } from "@/lib/dates";
+import { NewAppointment } from "@/components/agenda/new-appointment";
+import { listBookablePatients, overdueByPatient } from "@/lib/agenda";
+import { dateToHm, dateToYmd, formatLong, isHm, isYmd, todayYmd } from "@/lib/dates";
 import { requireUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Agregar cita" };
@@ -11,6 +11,13 @@ export default async function NewAppointmentPage({ searchParams }: PageProps<"/a
   await requireUser("admin");
   const sp = await searchParams;
   const patients = await listBookablePatients();
+  const overdue = await overdueByPatient();
+  const pending = Object.fromEntries(
+    Object.entries(overdue).map(([pid, list]) => [
+      pid,
+      list.map((t) => ({ id: t.id, label: `${formatLong(dateToYmd(t.startsAt))} · ${dateToHm(t.startsAt)}` })),
+    ]),
+  );
   const fecha = typeof sp.fecha === "string" && isYmd(sp.fecha) ? sp.fecha : todayYmd();
   const hora = typeof sp.hora === "string" && isHm(sp.hora) ? sp.hora : "10:00";
   const paciente = typeof sp.paciente === "string" ? sp.paciente : "";
@@ -26,7 +33,8 @@ export default async function NewAppointmentPage({ searchParams }: PageProps<"/a
           La sesión con un paciente. El horario no puede superponerse con otro evento.
         </p>
       </header>
-      <EventForm
+      <NewAppointment
+        pending={pending}
         patients={patients}
         defaults={{
           kind: "appointment",
