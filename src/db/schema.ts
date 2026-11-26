@@ -15,6 +15,8 @@ import {
 
 export const eventKindEnum = pgEnum("event_kind", ["appointment", "other"]);
 
+// Cómo se pagó cada turno. «pending» = todavía no se pagó.
+export const paymentStatusEnum = pgEnum("payment_status", ["pending", "cash", "transfer"]);
 export const roleEnum = pgEnum("role", ["admin", "patient"]);
 
 export const users = pgTable("users", {
@@ -118,6 +120,8 @@ export const events = pgTable(
     privateNote: text("private_note"),
     // Cuando el paciente confirma asistencia (paso 3). Mientras es null, la cita está sin confirmar.
     confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+    // Pago del turno (solo se usa en las citas).
+    paymentStatus: paymentStatusEnum("payment_status").notNull().default("pending"),
     // Cancelar libera el horario pero conserva el registro.
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
     // Las repeticiones semanales comparten la serie.

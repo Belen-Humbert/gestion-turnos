@@ -3,7 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { StatusBadge } from "@/components/status-badge";
-import { upcomingAppointments } from "@/lib/agenda";
+import { pastAppointments, upcomingAppointments } from "@/lib/agenda";
+import { CoinIcon } from "@/components/icons";
+import { PAYMENT_LABEL } from "@/lib/payments";
 import { dateToHm, dateToYmd, formatLong } from "@/lib/dates";
 import { listPatientNotes } from "@/lib/notes";
 import { getPatient } from "@/lib/patients";
@@ -33,6 +35,8 @@ export default async function PatientPage({ params }: PageProps<"/admin/paciente
   }));
   const upcoming = patient.active ? await upcomingAppointments(patient.id) : [];
   const discharged = patient.status === "discharged";
+  const past = await pastAppointments(patient.id, 12);
+  const owed = past.filter((t) => t.paymentStatus === "pending").length;
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
@@ -86,6 +90,43 @@ export default async function PatientPage({ params }: PageProps<"/admin/paciente
               ))}
             </ul>
           )}
+        </section>
+      ) : null}
+
+      {past.length > 0 ? (
+        <section aria-label="Pagos" className="rounded-[22px] border border-borde bg-white p-6">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="flex items-center gap-2 text-lg font-extrabold">
+              <span aria-hidden className="text-verde">
+                <CoinIcon size={22} />
+              </span>
+              Pagos
+            </h2>
+            {owed > 0 ? (
+              <span className="rounded-full bg-amarillo px-3 py-1 text-xs font-extrabold text-[#5e3f00]">
+                {owed} {owed === 1 ? "turno sin pagar" : "turnos sin pagar"}
+              </span>
+            ) : (
+              <span className="rounded-full bg-verde-claro px-3 py-1 text-xs font-extrabold text-verde-oscuro">Al día</span>
+            )}
+          </div>
+          <ul className="flex flex-col gap-2">
+            {past.map((t) => (
+              <li key={t.id}>
+                <Link
+                  href={`/admin/agenda/${t.id}`}
+                  className={`flex min-h-12 items-center justify-between gap-3 rounded-xl px-3.5 py-2 text-[15px] font-bold ${
+                    t.paymentStatus === "pending" ? "bg-amarillo text-[#5e3f00]" : "bg-fondo"
+                  }`}
+                >
+                  <span className="first-letter:uppercase">
+                    {formatLong(dateToYmd(t.startsAt))} · {dateToHm(t.startsAt)}
+                  </span>
+                  <span className="text-xs font-extrabold">{PAYMENT_LABEL[t.paymentStatus]}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
       ) : null}
 

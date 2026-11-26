@@ -19,6 +19,7 @@ import {
   todayYmd,
   weeklyOccurrences,
 } from "@/lib/dates";
+import { isPaymentStatus, PAYMENT_LABEL } from "@/lib/payments";
 import { resolveRequestsForEvents } from "@/lib/requests";
 import { requireUser } from "@/lib/session";
 
@@ -199,4 +200,22 @@ export async function cancelEvent(_prev: EventFormState, formData: FormData): Pr
   }
   revalidatePath("/admin", "layout");
   redirect(`/admin?fecha=${dateToYmd(event.startsAt)}`);
+}
+
+export type PaymentState = { error?: string; ok?: string } | undefined;
+
+// Ana marca cómo se pagó un turno (o lo deja pendiente).
+export async function setPayment(_prev: PaymentState, formData: FormData): Promise<PaymentState> {
+  await requireUser("admin");
+  const id = z.string().uuid().safeParse(formData.get("id"));
+  const status = formData.get("status");
+  if (!id.success || !isPaymentStatus(status)) return { error: "No se pudo guardar el pago." };
+  const updated = await db
+    .update(events)
+    .set({ paymentStatus: status })
+    .where(and(eq(events.id, id.data), eq(events.kind, "appointment"), isNull(events.cancelledAt)))
+    .returning({ id: events.id, patientId: events.patientId });
+  if (updated.length === 0) return { error: "El turno no existe o fue cancelado." };
+  revalidatePath("/admin", "layout");
+  return { ok: PAYMENT_LABEL[status] };
 }

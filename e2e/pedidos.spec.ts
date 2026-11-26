@@ -177,7 +177,7 @@ test("confirmación y pedidos de cambio", async ({ browser }) => {
     (await ad.locator("text=No puedo ese día").count()) === 1,
   );
   await ad.fill("#start", "17:00");
-  await ad.click("button[type=submit]");
+  await ad.click("form:has(#start) button[type=submit]");
   await ad.waitForURL("**/admin?fecha=*");
   check(
     "reprogramar resuelve el pedido y pide reconfirmar",

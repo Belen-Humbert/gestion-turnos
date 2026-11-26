@@ -1,8 +1,9 @@
 import "server-only";
-import { and, asc, eq, gt, isNull, lt, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, isNull, lt, ne, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { events, users } from "@/db/schema";
 import { localToDate } from "./dates";
+import type { PaymentStatus } from "./payments";
 
 export type AgendaEvent = {
   id: string;
@@ -14,6 +15,7 @@ export type AgendaEvent = {
   location: string | null;
   privateNote: string | null;
   confirmedAt: Date | null;
+  paymentStatus: PaymentStatus;
   seriesId: string | null;
 };
 
@@ -28,6 +30,7 @@ const columns = {
   location: events.location,
   privateNote: events.privateNote,
   confirmedAt: events.confirmedAt,
+  paymentStatus: events.paymentStatus,
   seriesId: events.seriesId,
 };
 
@@ -89,4 +92,45 @@ export async function upcomingAppointments(patientId: string, limit = 5): Promis
     )
     .orderBy(asc(events.startsAt))
     .limit(limit);
+}
+
+export type PatientTurno = { id: string; startsAt: Date; paymentStatus: PaymentStatus };
+
+// Turnos ya pasados (no cancelados) de un paciente, del más reciente al más antiguo.
+export async function pastAppointments(patientId: string, limit = 20): Promise<PatientTurno[]> {
+  return db
+    .select({ id: events.id, startsAt: events.startsAt, paymentStatus: events.paymentStatus })
+    .from(events)
+    .where(
+      and(
+        eq(events.kind, "appointment"),
+        eq(events.patientId, patientId),
+        isNull(events.cancelledAt),
+        lt(events.endsAt, new Date()),
+      ),
+    )
+    .orderBy(desc(events.startsAt))
+    .limit(limit);
+}
+
+// Turnos pasados sin pagar de todos los pacientes, agrupados por paciente.
+export async function overdueByPatient(): Promise<Record<string, { id: string; startsAt: Date }[]>> {
+  const rows = await db
+    .select({ id: events.id, patientId: events.patientId, startsAt: events.startsAt })
+    .from(events)
+    .where(
+      and(
+        eq(events.kind, "appointment"),
+        eq(events.paymentStatus, "pending"),
+        isNull(events.cancelledAt),
+        lt(events.endsAt, new Date()),
+      ),
+    )
+    .orderBy(asc(events.startsAt));
+  const out: Record<string, { id: string; startsAt: Date }[]> = {};
+  for (const r of rows) {
+    if (!r.patientId) continue;
+    (out[r.patientId] ??= []).push({ id: r.id, startsAt: r.startsAt });
+  }
+  return out;
 }

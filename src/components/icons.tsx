@@ -163,3 +163,10 @@ export const PencilIcon = ({ size = 22 }: P) => (
     <path d="m13.5 6.5 4 4" />
   </svg>
 );
+
+export const CoinIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M14.5 9.2c-.5-.8-1.4-1.2-2.5-1.2-1.4 0-2.4.7-2.4 1.8 0 2.5 5 1.2 5 3.8 0 1.1-1 1.9-2.6 1.9-1.1 0-2.1-.5-2.6-1.3M12 6.5V8m0 8v1.5" />
+  </svg>
+);
