@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { cancelEvent, saveEvent } from "@/app/admin/agenda/actions";
 import { FormError, SubmitButton } from "@/components/form-bits";
-import { DateField, DurationField, TimeField } from "./pickers";
+import { DateField, DurationField, SelectField, TimeField } from "./pickers";
 import { PatientPicker, type PickerPatient } from "./patient-picker";
 
 const inputCls = "h-12 rounded-xl border-[1.5px] border-borde bg-white px-3.5 text-base font-semibold";
@@ -49,6 +49,7 @@ export function EventForm({
   const v = (k: string, fallback: string) => state?.values?.[k] ?? fallback;
   const [date, setDate] = useState(v("date", defaults.date));
   const [start, setStart] = useState(v("start", defaults.start));
+  const [repeat, setRepeat] = useState(v("repeat", "0"));
   const [end, setEnd] = useState(v("end", defaults.end ?? ""));
   const duration = Number(v("duration", String(defaults.duration ?? 50)));
   const [durationValue, setDurationValue] = useState(duration);
@@ -124,12 +125,8 @@ export function EventForm({
 
       {!editing ? (
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="repeat" className={labelCls}>Repetición</label>
-          <select id="repeat" name="repeat" defaultValue={v("repeat", "0")} className={inputCls}>
-            {REPEATS.map((r) => (
-              <option key={r.v} value={r.v}>{r.label}</option>
-            ))}
-          </select>
+          <span className={labelCls}>Repetición</span>
+          <SelectField id="repeat" name="repeat" value={repeat} options={REPEATS} onChange={setRepeat} label="Repetición" />
         </div>
       ) : null}
 
