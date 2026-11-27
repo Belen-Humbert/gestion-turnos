@@ -86,6 +86,9 @@ export function uniqPhone() {
 
 // Elige un paciente en «Agendar cita» usando el buscador.
 export async function pickPatient(page: Page, name: string) {
+  // si ya hay un paciente elegido, la lista está cerrada: se reabre con «Cambiar paciente»
+  const change = page.locator("button:has-text('Cambiar paciente')");
+  if (await change.count()) await change.click();
   await page.fill("#patientSearch", name);
   const value = await page.locator("#patientId option", { hasText: name }).first().getAttribute("value");
   await page.selectOption("#patientId", value!);

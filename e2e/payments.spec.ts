@@ -34,6 +34,16 @@ test("pagos: marcar el pago, aviso al agendar y pendientes", async ({ browser })
   await pickPatient(a, "Lucía Fernández");
   const notice = a.locator("[aria-label='Pagos pendientes del paciente']");
   await notice.waitFor();
+  check(
+    "al elegir un paciente la lista se cierra y queda su nombre",
+    await waitFor(
+      async () =>
+        (await a.locator("[role=listbox][aria-label='Pacientes']").count()) === 0 &&
+        (await a.locator("button:has-text('Cambiar paciente')").count()) === 1 &&
+        (await a.locator("main").first().innerText()).includes("Lucía Fernández"),
+    ),
+  );
+
   check("avisa que Lucía tiene 2 turnos sin pagar", (await notice.innerText()).includes("2 turnos anteriores sin pagar"));
   await pickPatient(a, "Tomás Herrera");
   check("un paciente sin turnos no muestra el aviso", await waitFor(async () => (await notice.count()) === 0));
