@@ -2,6 +2,7 @@ import "server-only";
 import { and, asc, desc, eq, gt, inArray, isNull, lte } from "drizzle-orm";
 import { db } from "@/db";
 import { changeRequests, events } from "@/db/schema";
+import type { PaymentStatus } from "./payments";
 
 // Lo único que el paciente puede ver de una cita. Nunca incluye notas privadas ni el título.
 export type PatientTurno = {
@@ -10,6 +11,8 @@ export type PatientTurno = {
   endsAt: Date;
   location: string | null;
   confirmedAt: Date | null;
+  // Solo el estado del pago de SU turno (efectivo, transferencia o pendiente).
+  paymentStatus: PaymentStatus;
   openRequest: { message: string; createdAt: Date } | null;
 };
 
@@ -19,6 +22,7 @@ const cols = {
   endsAt: events.endsAt,
   location: events.location,
   confirmedAt: events.confirmedAt,
+  paymentStatus: events.paymentStatus,
 };
 
 async function withRequests(rows: Omit<PatientTurno, "openRequest">[]): Promise<PatientTurno[]> {
