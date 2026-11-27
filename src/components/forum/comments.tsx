@@ -19,6 +19,8 @@ export function CommentsSection({
   deleteOwn,
   heart,
   adminName = "Ana",
+  openReplies = false,
+  label = "esta publicación",
 }: {
   postId: string;
   comments: CommentView[];
@@ -29,13 +31,16 @@ export function CommentsSection({
   deleteOwn?: Action;
   heart?: Action; // solo la administradora
   adminName?: string;
+  // Biblioteca: cualquiera puede responder en cualquier comentario (no solo en los propios).
+  openReplies?: boolean;
+  label?: string;
 }) {
   const visible = comments.filter((c) => !c.hidden).length;
   const roots = comments.filter((c) => !c.parentId);
   const replies = new Map<string, CommentView[]>();
   for (const c of comments) if (c.parentId) replies.set(c.parentId, [...(replies.get(c.parentId) ?? []), c]);
   // Ana puede responder en cualquier comentario; cada paciente solo en los suyos (para seguir la charla con Ana).
-  const canReply = (root: CommentView) => (viewer === "admin" ? true : root.mine && commentsOpen);
+  const canReply = (root: CommentView) => (viewer === "admin" ? true : (openReplies || root.mine) && commentsOpen);
 
   function renderComment(c: CommentView) {
     return (
@@ -125,7 +130,7 @@ export function CommentsSection({
           hint={viewer === "admin" && !commentsOpen ? "Los comentarios de los pacientes están cerrados; vos igual podés responder." : undefined}
         />
       ) : (
-        <p className="rounded-xl bg-fondo px-3.5 py-2.5 text-sm font-bold text-suave">Los comentarios de esta publicación están cerrados.</p>
+        <p className="rounded-xl bg-fondo px-3.5 py-2.5 text-sm font-bold text-suave">Los comentarios de {label} están cerrados.</p>
       )}
     </section>
   );

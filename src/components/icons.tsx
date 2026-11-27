@@ -170,3 +170,25 @@ export const CoinIcon = ({ size = 22 }: P) => (
     <path d="M14.5 9.2c-.5-.8-1.4-1.2-2.5-1.2-1.4 0-2.4.7-2.4 1.8 0 2.5 5 1.2 5 3.8 0 1.1-1 1.9-2.6 1.9-1.1 0-2.1-.5-2.6-1.3M12 6.5V8m0 8v1.5" />
   </svg>
 );
+
+export const BookIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base}>
+    <path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z" />
+    <path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3" />
+    <path d="M9 7h6" />
+  </svg>
+);
+
+export const CheckIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base} strokeWidth={3}>
+    <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </svg>
+);
+
+// Prestado: el libro «sale» hacia otra persona.
+export const LentIcon = ({ size = 22 }: P) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" {...base} strokeWidth={2.6}>
+    <path d="M7 17 17 7" />
+    <path d="M8.5 7H17v8.5" />
+  </svg>
+);

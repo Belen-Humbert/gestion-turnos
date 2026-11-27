@@ -291,3 +291,48 @@ export const forumComments = pgTable(
     index("forum_comments_user_idx").on(t.userId, t.createdAt),
   ],
 );
+
+// --- Biblioteca -------------------------------------------------------------------------------
+// Libros físicos de Ana. Ella los carga (portada, título y autor) y marca cuáles están prestados.
+// Ana y los pacientes pueden comentar cada libro y responderse entre sí.
+export const libraryBooks = pgTable(
+  "library_books",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    title: text("title").notNull(),
+    author: text("author").notNull(),
+    // Foto de la portada, guardada en el almacenamiento (clave "library/<id>.<ext>").
+    coverKey: text("cover_key").notNull().unique(),
+    coverContentType: text("cover_content_type").notNull(),
+    // null = disponible; con fecha = prestado.
+    lentAt: timestamp("lent_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("library_books_created_idx").on(t.createdAt)],
+);
+
+export const libraryComments = pgTable(
+  "library_comments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookId: uuid("book_id")
+      .notNull()
+      .references(() => libraryBooks.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    body: text("body").notNull(),
+    // Respuesta a otro comentario (un solo nivel: responder a una respuesta cuelga del comentario original).
+    parentId: uuid("parent_id").references((): AnyPgColumn => libraryComments.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    // Ocultar es la moderación: deja de verse para los pacientes pero Ana lo conserva.
+    hiddenAt: timestamp("hidden_at", { withTimezone: true }),
+    // Cuando Ana lo vio; sirve para marcar «Nuevo».
+    adminSeenAt: timestamp("admin_seen_at", { withTimezone: true }),
+  },
+  (t) => [
+    index("library_comments_book_idx").on(t.bookId, t.createdAt),
+    index("library_comments_user_idx").on(t.userId, t.createdAt),
+  ],
+);

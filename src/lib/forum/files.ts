@@ -172,6 +172,6 @@ export function linkHost(url: string): string {
 
 // La clave con la que se guarda el archivo no usa el nombre original: solo un id y la extensión.
 const KEY_RE =
-  /^forum\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]{1,5}$/;
+  /^(?:forum|library)\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]{1,5}$/;
 export const isValidStorageKey = (key: unknown): key is string =>
   typeof key === "string" && KEY_RE.test(key);

@@ -6,7 +6,7 @@ import path from "node:path";
 import { deflateSync } from "node:zlib";
 import { eq, inArray, like, or } from "drizzle-orm";
 import { db, pool } from "../src/db";
-import { changeRequests, events, forumAttachments, forumComments, forumPosts, invitations, patientNotes, sessions, users } from "../src/db/schema";
+import { changeRequests, events, forumAttachments, forumComments, libraryComments, forumPosts, invitations, patientNotes, sessions, users } from "../src/db/schema";
 import { addDays, localToDate, mondayOf, snapToWeekday, todayYmd } from "../src/lib/dates";
 import { hashPassword } from "../src/lib/password";
 
@@ -125,6 +125,7 @@ async function reset() {
   await db.delete(events).where(inArray(events.title, OTHER_EVENTS));
   if (ids.length === 0) return;
   await db.delete(forumComments).where(inArray(forumComments.userId, ids));
+  await db.delete(libraryComments).where(inArray(libraryComments.userId, ids));
   await db.delete(changeRequests).where(inArray(changeRequests.patientId, ids));
   await db.delete(patientNotes).where(inArray(patientNotes.patientId, ids));
   await db.delete(events).where(inArray(events.patientId, ids));
