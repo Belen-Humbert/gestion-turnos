@@ -30,7 +30,7 @@ test("autenticación e invitaciones", async ({ browser }) => {
 
   const alertHas = (pg: typeof a, txt: string) =>
     pg.waitForFunction(
-      (t) => document.querySelector("[role=alert]")?.textContent?.includes(t),
+      (t) => document.querySelector("[role=alert]:not(#__next-route-announcer__)")?.textContent?.includes(t),
       txt,
       { timeout: 8000 },
     );

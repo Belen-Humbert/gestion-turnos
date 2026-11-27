@@ -97,7 +97,7 @@ test("foro completo", async ({ browser }) => {
   await ad.click("button:has-text('+ Agregar enlace')");
   await ad.fill("input[placeholder='https://…']", "javascript:alert(1)");
   await ad.click("button:has-text('Publicar')");
-  await ad.waitForSelector("[role=alert]:has-text('no es válido')");
+  await ad.waitForSelector("[role=alert]:not(#__next-route-announcer__):has-text('no es válido')");
   check(
     "un enlace javascript: se rechaza y no se pierde lo escrito",
     (await ad.inputValue("#title")) === "Ejercicio de <b>respiración</b>" &&
@@ -485,6 +485,8 @@ test("foro completo", async ({ browser }) => {
     )) === "0",
   );
   const RES = "[aria-label='Respuestas a Lucía Fernández']";
+  // damos tiempo a que termine de marcarse como visto lo último que abrió la paciente, antes de que Ana responda
+  await a.waitForTimeout(2000);
   await ad.locator(`${RES} button:text-is('Responder')`).click();
   await ad.fill(`${RES} textarea`, "Gracias por escribir, Lucía <i>:)</i>");
   await ad.click(`${RES} button[type=submit]`);
@@ -547,10 +549,11 @@ test("foro completo", async ({ browser }) => {
       "select count(*) from forum_comments where body='¡Gracias a vos!' and parent_id is not null",
     )) === "1",
   );
-  await ad.goto(`${BASE}/admin/foro/${pid}`);
+  // Se lee el HTML de la respuesta del servidor: la etiqueta «Nuevo» desaparece sola unos instantes después, al marcarse como vista.
+  const respHtml = await (await ad.goto(`${BASE}/admin/foro/${pid}`))!.text();
   check(
     "la respuesta de la paciente aparece como Nueva para Ana",
-    (await ad.locator(`${RES} >> text=Nuevo`).count()) === 1,
+    respHtml.includes("¡Gracias a vos!") && respHtml.includes(">Nuevo<"),
   );
   await sql(
     "update forum_comments set hidden_at=now() where parent_id is null and body like '<script>%'",

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { cancelEvent, saveEvent } from "@/app/admin/agenda/actions";
 import { FormError, SubmitButton } from "@/components/form-bits";
+import { DateField, DurationField, TimeField } from "./pickers";
 import { PatientPicker, type PickerPatient } from "./patient-picker";
 
 const inputCls = "h-12 rounded-xl border-[1.5px] border-borde bg-white px-3.5 text-base font-semibold";
@@ -46,7 +47,11 @@ export function EventForm({
   const editing = Boolean(defaults.id);
   const isAppointment = defaults.kind === "appointment";
   const v = (k: string, fallback: string) => state?.values?.[k] ?? fallback;
+  const [date, setDate] = useState(v("date", defaults.date));
+  const [start, setStart] = useState(v("start", defaults.start));
+  const [end, setEnd] = useState(v("end", defaults.end ?? ""));
   const duration = Number(v("duration", String(defaults.duration ?? 50)));
+  const [durationValue, setDurationValue] = useState(duration);
   const durations = DURATIONS.includes(duration) ? DURATIONS : [...DURATIONS, duration].sort((a, b) => a - b);
 
   return (
@@ -89,29 +94,26 @@ export function EventForm({
 
       <div className="flex flex-wrap gap-4">
         <div className="flex min-w-[200px] flex-[2] flex-col gap-1.5">
-          <label htmlFor="date" className={labelCls}>Fecha</label>
-          <input id="date" name="date" type="date" required defaultValue={v("date", defaults.date)} className={inputCls} />
+          <span className={labelCls}>Fecha</span>
+          <DateField id="date" name="date" value={date} onChange={setDate} />
         </div>
         <div className="flex min-w-[130px] flex-1 flex-col gap-1.5">
-          <label htmlFor="start" className={labelCls}>{isAppointment ? "Hora" : "Desde"}</label>
-          <input id="start" name="start" type="time" step={300} required defaultValue={v("start", defaults.start)} className={inputCls} />
+          <span className={labelCls}>{isAppointment ? "Hora" : "Desde"}</span>
+          <TimeField id="start" name="start" value={start} onChange={setStart} label={isAppointment ? "Hora" : "Desde"} />
         </div>
-        {isAppointment ? (
+        {!isAppointment ? (
           <div className="flex min-w-[130px] flex-1 flex-col gap-1.5">
-            <label htmlFor="duration" className={labelCls}>Duración</label>
-            <select id="duration" name="duration" defaultValue={String(duration)} className={inputCls}>
-              {durations.map((d) => (
-                <option key={d} value={d}>{d} min</option>
-              ))}
-            </select>
+            <span className={labelCls}>Hasta</span>
+            <TimeField id="end" name="end" value={end} onChange={setEnd} label="Hasta" />
           </div>
-        ) : (
-          <div className="flex min-w-[130px] flex-1 flex-col gap-1.5">
-            <label htmlFor="end" className={labelCls}>Hasta</label>
-            <input id="end" name="end" type="time" step={300} required defaultValue={v("end", defaults.end ?? "")} className={inputCls} />
-          </div>
-        )}
+        ) : null}
       </div>
+      {isAppointment ? (
+        <div className="flex flex-col gap-1.5">
+          <span className={labelCls}>Duración</span>
+          <DurationField id="duration" name="duration" value={String(durationValue)} options={durations} onChange={(d) => setDurationValue(Number(d))} />
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="location" className={labelCls}>

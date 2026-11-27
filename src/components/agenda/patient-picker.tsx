@@ -43,24 +43,42 @@ export function PatientPicker({
         autoComplete="off"
         className={inputCls}
       />
-      <select
-        id="patientId"
-        name="patientId"
-        required
-        size={Math.min(Math.max(shown.length, 2), 5)}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-label="Pacientes"
-        className="rounded-xl border-[1.5px] border-borde bg-white px-2 py-1 text-base font-semibold"
-      >
+      {/* El select real (oculto a la vista) lleva el valor al formulario. */}
+      <select id="patientId" name="patientId" required value={value} onChange={(e) => onChange(e.target.value)} tabIndex={-1} aria-hidden="true" className="sr-only">
+        <option value="" disabled>
+          Elegí un paciente
+        </option>
         {shown.map((p) => (
-          <option key={p.id} value={p.id} className="min-h-10 rounded-lg px-2 py-2">
+          <option key={p.id} value={p.id}>
             {p.name}
-            {p.phone ? ` · ${p.phone}` : ""}
           </option>
         ))}
       </select>
-      {shown.length === 0 || (shown.length === 1 && shown[0].id === value && term && !norm(shown[0].name).includes(term)) ? (
+      <ul role="listbox" aria-label="Pacientes" className="flex max-h-64 flex-col gap-1 overflow-y-auto rounded-xl border-[1.5px] border-borde bg-white p-1.5">
+        {shown.map((p) => {
+          const on = p.id === value;
+          return (
+            <li key={p.id} role="option" aria-selected={on}>
+              <button
+                type="button"
+                onClick={() => onChange(p.id)}
+                className={`flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-[15px] font-bold transition-all duration-150 ${
+                  on ? "bg-verde text-white" : "hover:translate-x-1 hover:bg-verde-claro hover:text-verde-oscuro"
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-extrabold ${on ? "bg-white/25" : "bg-violeta text-violeta-texto"}`}
+                >
+                  {p.name.charAt(0).toUpperCase()}
+                </span>
+                {p.name}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {shown.filter((p) => p.id !== value || norm(p.name).includes(term) || !term).length === 0 ? (
         <p className="text-sm font-semibold text-suave">Nadie coincide con esa búsqueda.</p>
       ) : null}
     </div>
