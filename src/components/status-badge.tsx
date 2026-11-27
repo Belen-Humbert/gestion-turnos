@@ -18,8 +18,8 @@ const ICON: Record<PatientStatus, (p: { size?: number }) => React.JSX.Element> =
 export function StatusBadge({ status }: { status: PatientStatus }) {
   const Icon = ICON[status];
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-extrabold ${STYLE[status]}`}>
-      <Icon size={15} />
+    <span className={`inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-extrabold ${STYLE[status]}`}>
+      <Icon size={19} />
       {STATUS_LABEL[status]}
     </span>
   );
