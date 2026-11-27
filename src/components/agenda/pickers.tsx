@@ -228,3 +228,71 @@ export function DurationField({ id, name, value, options, onChange }: { id: stri
     </div>
   );
 }
+
+// ---- Lista desplegable propia (Repetición) -------------------------------------------------
+export function SelectField({
+  id,
+  name,
+  value,
+  options,
+  onChange,
+  label,
+}: {
+  id: string;
+  name: string;
+  value: string;
+  options: { v: string; label: string }[];
+  onChange: (v: string) => void;
+  label: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useDismiss(open, () => setOpen(false));
+  const current = options.find((o) => o.v === value) ?? options[0];
+  return (
+    <div ref={ref} className="relative">
+      <select id={id} name={name} value={value} onChange={(e) => onChange(e.target.value)} tabIndex={-1} aria-hidden="true" className={nativeCls}>
+        {options.map((o) => (
+          <option key={o.v} value={o.v}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`${label}: ${current.label}`}
+        onClick={() => setOpen((o) => !o)}
+        className={`${triggerCls} pr-4`}
+      >
+        <span>{current.label}</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`shrink-0 transition-transform ${open ? "rotate-180" : ""}`}>
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+      {open ? (
+        <ul role="listbox" aria-label={label} className="absolute left-0 right-0 z-30 mt-2 flex flex-col gap-1 rounded-2xl border border-borde bg-white p-1.5 shadow-xl">
+          {options.map((o) => {
+            const on = o.v === value;
+            return (
+              <li key={o.v} role="option" aria-selected={on}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange(o.v);
+                    setOpen(false);
+                  }}
+                  className={`flex min-h-11 w-full items-center rounded-lg px-3 text-left text-[15px] font-bold transition-all duration-150 ${
+                    on ? "bg-verde text-white" : "hover:translate-x-1 hover:bg-verde-claro hover:text-verde-oscuro"
+                  }`}
+                >
+                  {o.label}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
