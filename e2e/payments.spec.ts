@@ -95,6 +95,15 @@ test("pagos: marcar el pago, aviso al agendar y pendientes", async ({ browser })
   await pt.click("button[type=submit]");
   await pt.waitForURL("**/paciente");
   check("el paciente no ve la sección de pagos", !(await pt.content()).includes("Pagó efectivo"));
+  // el paciente ve el estado de pago de SUS turnos anteriores (solo lectura)
+  await pt.goto(`${BASE}/paciente/turnos`);
+  let txt = await pt.innerText("main");
+  check("el paciente ve su turno anterior con pago pendiente", txt.includes("Pago pendiente") && txt.includes("1 turno pendiente de pago"));
+  check("el paciente no puede cambiar el pago", (await pt.locator("button:has-text('Pagó')").count()) === 0);
+  await sql("update events set payment_status='cash' where patient_id=(select id from users where email='demo2@example.com')");
+  await pt.goto(`${BASE}/paciente/turnos`);
+  txt = await pt.innerText("main");
+  check("al pagarse figura como pagado y al día", txt.includes("Pagado · efectivo") && txt.includes("Tus pagos están al día"));
   await ctx.close();
   await pc.close();
 });
