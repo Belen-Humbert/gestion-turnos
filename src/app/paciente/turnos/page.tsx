@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { CalendarIcon } from "@/components/icons";
 import { dateToHm, dateToYmd, formatLong } from "@/lib/dates";
 import { pastTurnos, upcomingTurnos } from "@/lib/patient-turnos";
 import { requireUser } from "@/lib/session";
@@ -24,12 +25,17 @@ export default async function Page() {
       </div>
       {past.length > 0 ? (
         <section aria-label="Turnos anteriores" className="rounded-[22px] border border-borde bg-white p-6">
-          <h2 className="mb-2 text-lg font-extrabold">Anteriores</h2>
-          <ul className="flex flex-col gap-1.5">
+          <h2 className="mb-3 text-lg font-extrabold">Anteriores</h2>
+          <ul className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             {past.map((t) => (
-              <li key={t.id} className="text-sm font-semibold text-suave">
-                <span className="first-letter:uppercase">{formatLong(dateToYmd(t.startsAt))}</span> ·{" "}
-                {dateToHm(t.startsAt)}
+              <li key={t.id} className="flex items-center gap-3 rounded-xl bg-fondo px-3.5 py-3">
+                <span aria-hidden className="text-verde">
+                  <CalendarIcon size={22} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[15px] font-extrabold first-letter:uppercase">{formatLong(dateToYmd(t.startsAt))}</span>
+                  <span className="block text-sm font-semibold text-suave">{dateToHm(t.startsAt)}</span>
+                </span>
               </li>
             ))}
           </ul>
