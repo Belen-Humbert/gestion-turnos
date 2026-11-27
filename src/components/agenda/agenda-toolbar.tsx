@@ -32,13 +32,13 @@ export function AgendaToolbar({ view, date }: { view: AgendaViewName; date: stri
         <div className="flex flex-wrap gap-2.5">
           <Link
             href={`/admin/agenda/cita/nueva?fecha=${date}`}
-            className="flex min-h-12 items-center gap-2 rounded-2xl bg-verde px-5 text-[15px] font-extrabold text-white hover:bg-verde-oscuro"
+            className="flex min-h-11 items-center gap-2 rounded-xl bg-verde px-4 text-sm font-extrabold text-white hover:bg-verde-oscuro"
           >
-            <span aria-hidden="true" className="text-xl leading-none">+</span> Agendar cita
+            <span aria-hidden="true" className="text-lg leading-none">+</span> Agendar cita
           </Link>
           <Link
             href={`/admin/agenda/evento/nuevo?fecha=${date}`}
-            className="flex min-h-12 items-center rounded-2xl border-[1.5px] border-borde bg-white px-4 text-[15px] font-extrabold hover:bg-azul"
+            className="flex min-h-11 items-center rounded-xl border-[1.5px] border-borde bg-white px-4 text-sm font-extrabold hover:bg-azul"
           >
             Otro evento
           </Link>

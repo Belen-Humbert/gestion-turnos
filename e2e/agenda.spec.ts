@@ -14,6 +14,7 @@ import {
   uniq,
   uniqPhone,
   pickPatient,
+  waitFor,
 } from "./support";
 
 // Agenda: citas, repetición semanal, superposiciones, otros eventos, edición y cancelación.
@@ -39,7 +40,7 @@ test("agenda de Ana", async ({ browser }) => {
     pg.locator("a[href^='/admin/agenda/']:not([href*='/cita/']):not([href*='/evento/']):visible").count();
   const submitError = (text: string) =>
     a.waitForFunction(
-      (t) => document.querySelector("[role=alert]")?.textContent?.includes(t),
+      (t) => document.querySelector("[role=alert]:not(#__next-route-announcer__)")?.textContent?.includes(t),
       text,
       { timeout: 8000 },
     );
@@ -87,20 +88,37 @@ test("agenda de Ana", async ({ browser }) => {
   const count = (q: string) => sql(q);
 
   await a.goto(`${BASE}/admin/agenda/cita/nueva`);
-  const opts = await a.locator("#patientId option").allInnerTexts();
+  const opts = await a.locator("#patientId option:not([disabled])").allInnerTexts();
   check(
     "el desplegable incluye activos y excluye inactivos",
     opts.some((o) => o.startsWith(n1)) && !opts.some((o) => o.startsWith(n2)),
   );
   // buscador de pacientes: filtra por nombre (sin importar tildes) y por celular
   await a.fill("#patientSearch", "lucia fernandez");
-  const filtered = await a.locator("#patientId option").allInnerTexts();
+  const filtered = await a.locator("#patientId option:not([disabled])").allInnerTexts();
   check("el buscador filtra por nombre sin importar tildes", filtered.length === 1 && filtered[0].startsWith("Lucía Fernández"));
   await a.fill("#patientSearch", "261 555 0102");
-  const byPhone = await a.locator("#patientId option").allInnerTexts();
+  const byPhone = await a.locator("#patientId option:not([disabled])").allInnerTexts();
   check("el buscador filtra por celular", byPhone.length === 1 && byPhone[0].startsWith("Martín Giménez"));
   await a.fill("#patientSearch", "zzzz");
   check("sin coincidencias avisa", (await a.locator("text=Nadie coincide").count()) === 1);
+  // selectores propios: fecha, hora y duración (con resaltado al pasar el mouse)
+  await a.click("button[aria-label^='Fecha:']");
+  await a.locator("[role=dialog][aria-label='Elegir fecha'] button[aria-label$='-15']").first().hover();
+  check(
+    "el día se resalta al pasar el cursor",
+    await waitFor(async () =>
+      (await a.locator("[role=dialog][aria-label='Elegir fecha'] button[aria-label$='-15']").first().evaluate((el) => getComputedStyle(el).backgroundColor)) !== "rgba(0, 0, 0, 0)",
+    ),
+  );
+  await a.locator("[role=dialog][aria-label='Elegir fecha'] button[aria-label$='-15']").first().click();
+  check("elegir un día completa la fecha", (await a.inputValue("#date")).endsWith("-15"));
+  await a.click("button[aria-label^='Hora:']");
+  await a.click("[role=listbox][aria-label='Hora'] >> text=14");
+  await a.click("[role=listbox][aria-label='Minutos'] >> text=35");
+  check("elegir la hora", (await a.inputValue("#start")) === "14:35");
+  await a.click("button:has-text('90 min')");
+  check("elegir la duración", (await a.inputValue("#duration")) === "90");
   // botón directo desde el panel
   await a.goto(`${BASE}/admin`);
   await a.click("a:has-text('Agendar cita')");

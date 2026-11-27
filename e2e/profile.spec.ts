@@ -66,7 +66,7 @@ test("perfil de la paciente", async ({ browser }) => {
   await a.fill("#phone", "");
   await a.evaluate(() => ((document.querySelector("#phone") as HTMLInputElement).required = false));
   await sub(a, "Guardar celular", "Mis datos");
-  await a.waitForFunction(() => document.querySelector("[role=alert]")?.textContent?.includes("celular"));
+  await a.waitForFunction(() => document.querySelector("[role=alert]:not(#__next-route-announcer__)")?.textContent?.includes("celular"));
   check(
     "un celular vacío se rechaza y no se borra",
     (await sql(`select phone from users where email='${m2}'`)) === "+54 261 600-1234",
@@ -153,7 +153,7 @@ test("perfil de la paciente", async ({ browser }) => {
   const n = await browser.newContext();
   const nn = await n.newPage();
   await login(nn, m2, DEMO_PASSWORD);
-  await nn.waitForSelector("[role=alert]");
+  await nn.waitForSelector("[role=alert]:not(#__next-route-announcer__)");
   check("la clave vieja ya no entra", nn.url().includes("/login"));
   await login(nn, m2, NEW);
   await nn.waitForURL("**/paciente");

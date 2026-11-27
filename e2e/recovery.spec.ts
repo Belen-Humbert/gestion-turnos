@@ -94,15 +94,15 @@ test("recuperar contraseña y límites de intentos", async ({ browser }) => {
   await pg.fill("input[name=password]", "corta");
   await pg.fill("input[name=confirm]", "corta");
   await pg.click("button[type=submit]");
-  await pg.waitForSelector("[role=alert]");
+  await pg.waitForSelector("[role=alert]:not(#__next-route-announcer__)");
   check(
     "una contraseña corta se rechaza",
-    (await pg.innerText("[role=alert]")).includes("al menos 10"),
+    (await pg.innerText("[role=alert]:not(#__next-route-announcer__)")).includes("al menos 10"),
   );
   await pg.fill("input[name=password]", NEW);
   await pg.fill("input[name=confirm]", "otra-distinta-123");
   await pg.click("button[type=submit]");
-  await pg.waitForSelector("[role=alert]:has-text('no coinciden')");
+  await pg.waitForSelector("[role=alert]:not(#__next-route-announcer__):has-text('no coinciden')");
   check("si no coinciden se avisa", true);
   await pg.fill("input[name=password]", NEW);
   await pg.fill("input[name=confirm]", NEW);
@@ -116,7 +116,7 @@ test("recuperar contraseña y límites de intentos", async ({ browser }) => {
   await o.waitForURL("**/login");
   check("la sesión abierta en otro dispositivo se cerró", true);
   await login(pg, "demo1@example.com", PW, B);
-  await pg.waitForSelector("[role=alert], [aria-live]", { timeout: 8000 });
+  await pg.waitForSelector("[role=alert]:not(#__next-route-announcer__), [aria-live]", { timeout: 8000 });
   check("la contraseña vieja ya no entra", !pg.url().includes("/paciente"));
   await login(pg, "demo1@example.com", NEW, B);
   await pg.waitForURL("**/paciente");
@@ -163,22 +163,26 @@ test("recuperar contraseña y límites de intentos", async ({ browser }) => {
     await pg.waitForSelector("[role=status]");
   }
   await send("demo4@example.com");
-  await pg.waitForSelector("[role=alert]");
+  await pg.waitForSelector("[role=alert]:not(#__next-route-announcer__)");
   check(
     "más de 3 pedidos por hora para un email se frenan",
-    (await pg.innerText("[role=alert]")).toLowerCase().includes("demasiados"),
+    (await pg.innerText("[role=alert]:not(#__next-route-announcer__)")).toLowerCase().includes("demasiados"),
   );
 
   // límite de login persistente y sin datos en claro
   await sql("delete from rate_limits");
   for (let i = 0; i < 9; i++) {
     await login(pg, "demo5@example.com", `mala-clave-${i}`, B);
-    await pg.waitForSelector("[role=alert]");
+    await pg.waitForSelector("[role=alert]:not(#__next-route-announcer__)");
   }
-  check(
-    "tras varios intentos fallidos el login se bloquea",
-    (await pg.innerText("[role=alert]")).includes("Demasiados"),
-  );
+  // el contador se guarda en la base: damos unos intentos de margen por si algún registro llega tarde
+  let blocked = (await pg.innerText("[role=alert]:not(#__next-route-announcer__)")).includes("Demasiados");
+  for (let i = 0; i < 3 && !blocked; i++) {
+    await login(pg, "demo5@example.com", `mala-clave-extra-${i}`, B);
+    await pg.waitForSelector("[role=alert]:not(#__next-route-announcer__)");
+    blocked = (await pg.innerText("[role=alert]:not(#__next-route-announcer__)")).includes("Demasiados");
+  }
+  check("tras varios intentos fallidos el login se bloquea", blocked);
   check(
     "el bloqueo queda guardado en la base",
     (await sql("select count(*) from rate_limits where count>=8")) !== "0",

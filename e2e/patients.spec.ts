@@ -44,7 +44,7 @@ test("pacientes: alta, invitación, búsqueda y desactivación", async ({
   );
   await a.click("button[type=submit]");
   await a.waitForFunction(() =>
-    document.querySelector("[role=alert]")?.textContent?.includes("email"),
+    document.querySelector("[role=alert]:not(#__next-route-announcer__)")?.textContent?.includes("email"),
   );
   await a.waitForFunction(
     (n) => (document.querySelector("#name") as HTMLInputElement).value === n,
@@ -54,7 +54,7 @@ test("pacientes: alta, invitación, búsqueda y desactivación", async ({
   await a.fill("#email", "demo1@example.com");
   await a.click("button[type=submit]");
   await a.waitForFunction(() =>
-    document.querySelector("[role=alert]")?.textContent?.includes("Ya existe"),
+    document.querySelector("[role=alert]:not(#__next-route-announcer__)")?.textContent?.includes("Ya existe"),
   );
   check("email duplicado rechazado", true);
   await a.evaluate(
@@ -149,7 +149,7 @@ test("pacientes: alta, invitación, búsqueda y desactivación", async ({
   await pt.click("button[type=submit]");
   await pt.waitForFunction(() =>
     document
-      .querySelector("[role=alert]")
+      .querySelector("[role=alert]:not(#__next-route-announcer__)")
       ?.textContent?.includes("incorrectos"),
   );
   check("una paciente bloqueada no puede ingresar", true);
@@ -198,12 +198,12 @@ test("pacientes: celular obligatorio, sin email, ingreso con celular y alta", as
   // un celular sin código de área se rechaza
   await a.fill("#phone", "12345");
   await a.click("button[type=submit]");
-  await a.waitForFunction(() => document.querySelector("[role=alert]")?.textContent?.includes("código de área"));
+  await a.waitForFunction(() => document.querySelector("[role=alert]:not(#__next-route-announcer__)")?.textContent?.includes("código de área"));
   check("celular incompleto rechazado", true);
   // celular repetido (Lucía Fernández ya lo tiene, escrito de otra forma)
   await a.fill("#phone", "+54 9 261 555-0101");
   await a.click("button[type=submit]");
-  await a.waitForFunction(() => document.querySelector("[role=alert]")?.textContent?.includes("celular"));
+  await a.waitForFunction(() => document.querySelector("[role=alert]:not(#__next-route-announcer__)")?.textContent?.includes("celular"));
   check("celular repetido rechazado aunque esté escrito distinto", true);
 
   // sin email
