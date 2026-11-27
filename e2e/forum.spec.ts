@@ -223,7 +223,7 @@ test("foro completo", async ({ browser }) => {
   check(
     "el comentario aparece y el HTML no se ejecuta",
     (await a
-      .locator("[data-comment][aria-label='Comentario de Lucía']")
+      .locator("[data-comment][aria-label='Comentario de Luna']")
       .count()) === 1 &&
       (await a.evaluate(
         () => (window as unknown as { __pwn?: number }).__pwn === undefined,
@@ -255,7 +255,7 @@ test("foro completo", async ({ browser }) => {
   check(
     "otro paciente ve el comentario solo con el nombre de pila",
     (await b
-      .locator("[data-comment][aria-label='Comentario de Lucía']")
+      .locator("[data-comment][aria-label='Comentario de Luna']")
       .count()) === 1 &&
       !bHtml.includes("Fernández") &&
       !bHtml.includes("demo1@example.com"),
@@ -264,7 +264,7 @@ test("foro completo", async ({ browser }) => {
     "otro paciente no puede borrar un comentario ajeno",
     (await b
       .locator(
-        "[data-comment][aria-label='Comentario de Lucía'] button:has-text('Borrar')",
+        "[data-comment][aria-label='Comentario de Luna'] button:has-text('Borrar')",
       )
       .count()) === 0,
   );
@@ -272,7 +272,7 @@ test("foro completo", async ({ browser }) => {
   await b.click("button:has-text('Publicar comentario')");
   await b.waitForSelector("text=Comentario publicado");
   await b.reload();
-  const MT = "[data-comment][aria-label='Comentario de Martín']";
+  const MT = "[data-comment][aria-label='Comentario de Cedro']";
   check(
     "Martín puede borrar su propio comentario",
     (await b.locator(`${MT} button:has-text('Borrar')`).count()) === 1,
@@ -291,7 +291,7 @@ test("foro completo", async ({ browser }) => {
   const html = await (await ca.request.get(`${BASE}/admin/foro/${pid}`)).text();
   check(
     "Ana ve el nombre completo y la etiqueta Nuevo",
-    html.includes("Comentario de Lucía Fernández") && html.includes(">Nuevo<"),
+    html.includes("Comentario de Lucía Fernández · Luna") && html.includes(">Nuevo<"),
   );
   await ad.goto(`${BASE}/admin/foro/${pid}`);
   await ad.waitForTimeout(1500);
@@ -305,7 +305,7 @@ test("foro completo", async ({ browser }) => {
         "select count(*) from forum_comments where admin_seen_at is null",
       )) === "0",
   );
-  const LU = "[data-comment][aria-label='Comentario de Lucía Fernández']";
+  const LU = "[data-comment][aria-label='Comentario de Lucía Fernández · Luna']";
   await ad.goto(`${BASE}/admin/foro/${pid}`);
   await ad.locator(`${LU} button:has-text('Ocultar')`).click();
   await ad.waitForSelector("text=Oculto para los pacientes");
@@ -313,7 +313,7 @@ test("foro completo", async ({ browser }) => {
   check(
     "un comentario oculto desaparece para los pacientes",
     (await b
-      .locator("[data-comment][aria-label^='Comentario de Lucía']")
+      .locator("[data-comment][aria-label^='Comentario de Luna']")
       .count()) === 0,
   );
   await a.reload();
@@ -330,7 +330,7 @@ test("foro completo", async ({ browser }) => {
   check(
     "al mostrarlo vuelve a verse",
     (await b
-      .locator("[data-comment][aria-label='Comentario de Lucía']")
+      .locator("[data-comment][aria-label='Comentario de Luna']")
       .count()) === 1,
   );
   await ad.fill("textarea[name=body]", "Me alegra que te sirva.");
@@ -484,7 +484,7 @@ test("foro completo", async ({ browser }) => {
       "select count(*) from forum_comments where admin_hearted_at is not null",
     )) === "0",
   );
-  const RES = "[aria-label='Respuestas a Lucía Fernández']";
+  const RES = "[aria-label='Respuestas a Lucía Fernández · Luna']";
   // damos tiempo a que termine de marcarse como visto lo último que abrió la paciente, antes de que Ana responda
   await a.waitForTimeout(2000);
   await ad.locator(`${RES} button:text-is('Responder')`).click();
@@ -521,27 +521,27 @@ test("foro completo", async ({ browser }) => {
     "la paciente ve la respuesta de Ana dentro de su comentario",
     (await a
       .locator(
-        "[aria-label='Respuestas a Lucía'] [data-comment][aria-label^='Respuesta de']",
+        "[aria-label='Respuestas a Luna'] [data-comment][aria-label^='Respuesta de']",
       )
       .count()) === 1 &&
-      (await a.locator("[aria-label='Respuestas a Lucía'] i").count()) === 0,
+      (await a.locator("[aria-label='Respuestas a Luna'] i").count()) === 0,
   );
   await b.reload();
   check(
     "otro paciente ve la respuesta (hilo) sin poder responder",
     (await b
-      .locator("[aria-label='Respuestas a Lucía'] [data-comment]")
+      .locator("[aria-label='Respuestas a Luna'] [data-comment]")
       .count()) === 1 &&
       (await b.locator("button:text-is('Responder')").count()) === 0,
   );
   await a.waitForTimeout(2000);
   await a
-    .locator("[aria-label='Respuestas a Lucía'] button:text-is('Responder')")
+    .locator("[aria-label='Respuestas a Luna'] button:text-is('Responder')")
     .click();
-  await a.fill("[aria-label='Respuestas a Lucía'] textarea", "¡Gracias a vos!");
-  await a.click("[aria-label='Respuestas a Lucía'] button[type=submit]");
+  await a.fill("[aria-label='Respuestas a Luna'] textarea", "¡Gracias a vos!");
+  await a.click("[aria-label='Respuestas a Luna'] button[type=submit]");
   await a.waitForSelector(
-    "[aria-label='Respuestas a Lucía'] >> text=¡Gracias a vos!",
+    "[aria-label='Respuestas a Luna'] >> text=¡Gracias a vos!",
   );
   check(
     "la paciente puede seguir la charla en su propio hilo",
@@ -561,7 +561,7 @@ test("foro completo", async ({ browser }) => {
   await a.reload();
   check(
     "si se oculta el comentario, sus respuestas también se ocultan",
-    (await a.locator("[data-comment][aria-label*='Lucía']").count()) === 0,
+    (await a.locator("[data-comment][aria-label*='Luna']").count()) === 0,
   );
   await sql("update forum_comments set hidden_at=null");
 

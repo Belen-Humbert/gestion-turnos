@@ -4,13 +4,14 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { requireUser } from "@/lib/session";
-import { PasswordForm, PhoneForm, RemindersForm } from "./profile-forms";
+import { AliasForm, ParticipationForm, PasswordForm, PhoneForm, RemindersForm } from "./profile-forms";
 
 export const metadata: Metadata = { title: "Perfil" };
 
 const TABS = [
   { id: "datos", label: "Mis datos" },
   { id: "recordatorios", label: "Recordatorios" },
+  { id: "privacidad", label: "Privacidad" },
   { id: "contrasena", label: "Contraseña" },
 ] as const;
 type TabId = (typeof TABS)[number]["id"];
@@ -40,6 +41,10 @@ export default async function Page({ searchParams }: PageProps<"/paciente/perfil
       remind24h: users.remind24h,
       remind2h: users.remind2h,
       notifyForum: users.notifyForum,
+      alias: users.alias,
+      useForum: users.useForum,
+      useLibrary: users.useLibrary,
+      useCommunity: users.useCommunity,
     })
     .from(users)
     .where(eq(users.id, session.id))
@@ -92,6 +97,20 @@ export default async function Page({ searchParams }: PageProps<"/paciente/perfil
         <Card title="Recordatorios de turnos" hint="Elegí cómo y cuándo avisarte antes de cada turno.">
           <RemindersForm reminders={me} vapidPublicKey={process.env.VAPID_PUBLIC_KEY ?? null} />
         </Card>
+      ) : null}
+
+      {tab === "privacidad" ? (
+        <>
+          <Card
+            title="Nombre de usuario"
+            hint="Para participar en el Foro, la Biblioteca y la Comunidad elegís un nombre ficticio. Los demás pacientes nunca ven tu nombre real; solo la psicóloga lo conoce."
+          >
+            <AliasForm alias={me.alias ?? ""} />
+          </Card>
+          <Card title="¿Dónde querés participar?" hint="Podés activar o desactivar estas secciones cuando quieras.">
+            <ParticipationForm forum={me.useForum} library={me.useLibrary} community={me.useCommunity} />
+          </Card>
+        </>
       ) : null}
 
       {tab === "contrasena" ? (

@@ -2,6 +2,7 @@ import "server-only";
 import { and, asc, count, desc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { libraryBooks, libraryComments, users } from "@/db/schema";
+import { authorLabel } from "@/lib/author-label";
 import type { CommentView } from "@/lib/forum/queries";
 
 export type BookSummary = {
@@ -12,8 +13,6 @@ export type BookSummary = {
   commentCount: number;
   newComments: number; // solo tiene sentido para Ana
 };
-
-const firstName = (full: string) => full.trim().split(/\s+/)[0] ?? "";
 
 // Todos los libros, del más nuevo al más viejo. `q` busca en título y autor.
 export async function listBooks(q = ""): Promise<BookSummary[]> {
@@ -61,6 +60,7 @@ export async function listBookComments(
       id: libraryComments.id,
       userId: libraryComments.userId,
       name: users.name,
+      alias: users.alias,
       role: users.role,
       body: libraryComments.body,
       createdAt: libraryComments.createdAt,
@@ -80,7 +80,7 @@ export async function listBookComments(
     viewer.role === "admin" ? rows : rows.filter((r) => !r.parentId || rows.some((x) => x.id === r.parentId));
   return shown.map((r) => ({
     id: r.id,
-    author: viewer.role === "admin" || r.role === "admin" ? r.name : firstName(r.name),
+    author: authorLabel(viewer.role, { role: r.role, name: r.name, alias: r.alias }),
     isAdmin: r.role === "admin",
     mine: r.userId === viewer.id,
     body: r.body,

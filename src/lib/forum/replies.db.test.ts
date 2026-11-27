@@ -29,6 +29,8 @@ describe.skipIf(!process.env.DATABASE_URL)(
             .values({
               role,
               name,
+              alias: role === "patient" ? `Alias ${k}` : null,
+              aliasKey: role === "patient" ? `alias ${k}` : null,
               email: `reply-test-${k}@example.com`,
               passwordHash: "x",
             })

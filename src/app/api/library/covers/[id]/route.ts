@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { libraryBooks } from "@/db/schema";
+import { getParticipation } from "@/lib/participation";
 import { getSessionUser } from "@/lib/session";
 import { getStorage } from "@/lib/storage";
 
@@ -14,6 +15,7 @@ const deny = (status: number, error: string) => Response.json({ error }, { statu
 export async function GET(_request: Request, ctx: RouteContext<"/api/library/covers/[id]">) {
   const user = await getSessionUser();
   if (!user) return deny(401, "Iniciá sesión para ver esta imagen.");
+  if (user.role === "patient" && !(await getParticipation(user.id)).library) return deny(403, "Esta sección está desactivada en tu Perfil.");
   const id = z.string().uuid().safeParse((await ctx.params).id);
   if (!id.success) return deny(404, "No encontramos la imagen.");
   const [book] = await db

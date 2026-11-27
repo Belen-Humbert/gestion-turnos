@@ -111,6 +111,7 @@ export async function notifyPatientsOfPost(
         eq(users.role, "patient"),
         eq(users.active, true),
         eq(users.notifyForum, true),
+        eq(users.useForum, true),
         isNotNull(users.passwordHash),
       ),
     );

@@ -243,9 +243,12 @@ test("agenda de Ana", async ({ browser }) => {
   await a.waitForURL(`**/admin?fecha=${mon2}`);
   check(
     "cancelar «este y siguientes» deja solo la primera semana",
-    (await count(
-      `select count(*) from events where kind='appointment' and cancelled_at is null and starts_at::date >= '${mon2}'`,
-    )) === "0",
+    await waitFor(
+      async () =>
+        (await count(
+          `select count(*) from events where kind='appointment' and cancelled_at is null and (starts_at at time zone 'America/Argentina/Mendoza')::date >= '${mon2}'`,
+        )) === "0",
+    ),
   );
   await a.goto(`${BASE}/admin?fecha=${mon2}`);
   check("la semana cancelada queda vacía", (await blocks(a)) === 0);
