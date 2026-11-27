@@ -5,6 +5,7 @@ import { z } from "zod";
 import { CommentsSection } from "@/components/forum/comments";
 import { Cover, StatusLabel, StatusMark } from "@/components/library/book-grid";
 import { getBook, listBookComments } from "@/lib/library/queries";
+import { getParticipation } from "@/lib/participation";
 import { requireUser } from "@/lib/session";
 import { addBookComment, deleteOwnBookComment } from "../actions";
 
@@ -16,7 +17,7 @@ export default async function Page({ params }: PageProps<"/paciente/biblioteca/[
   if (!z.string().uuid().safeParse(id).success) notFound();
   const book = await getBook(id);
   if (!book) notFound();
-  const comments = await listBookComments(id, user);
+  const [comments, participation] = await Promise.all([listBookComments(id, user), getParticipation(user.id)]);
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
@@ -48,6 +49,7 @@ export default async function Page({ params }: PageProps<"/paciente/biblioteca/[
         deleteOwn={deleteOwnBookComment}
         openReplies
         label="este libro"
+        needsAlias={!participation.alias}
       />
     </div>
   );

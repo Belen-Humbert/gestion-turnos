@@ -41,6 +41,14 @@ export const users = pgTable("users", {
   remind2h: boolean("remind_2h").notNull().default(true),
   // Si quiere que le avisen cuando se publica material nuevo en el foro (por los canales de arriba).
   notifyForum: boolean("notify_forum").notNull().default(true),
+  // Nombre de usuario ficticio: es lo único que ven los otros pacientes de quien participa (Foro, Biblioteca, Comunidad).
+  alias: text("alias"),
+  // Versión normalizada (sin tildes ni mayúsculas) para que no se repita.
+  aliasKey: text("alias_key").unique(),
+  // Cada paciente elige si ve y participa en estas secciones. El resto de la app funciona igual.
+  useForum: boolean("use_forum").notNull().default(true),
+  useLibrary: boolean("use_library").notNull().default(true),
+  useCommunity: boolean("use_community").notNull().default(true),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -334,5 +342,37 @@ export const libraryComments = pgTable(
   (t) => [
     index("library_comments_book_idx").on(t.bookId, t.createdAt),
     index("library_comments_user_idx").on(t.userId, t.createdAt),
+  ],
+);
+
+// --- Comunidad --------------------------------------------------------------------------------
+// Publicaciones entre pacientes (emprendimientos, eventos, películas, etc.), moderadas por Ana.
+// pending = esperando revisión · changes = Ana pidió modificaciones · approved = visible hasta expiresAt.
+export const communityStatusEnum = pgEnum("community_status", ["pending", "changes", "approved"]);
+
+export const communityPosts = pgTable(
+  "community_posts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    authorId: uuid("author_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    link: text("link"),
+    status: communityStatusEnum("status").notNull().default("pending"),
+    // Lo que Ana le pidió cambiar al paciente (solo con status = changes).
+    moderatorNote: text("moderator_note"),
+    approvedAt: timestamp("approved_at", { withTimezone: true }),
+    // Una publicación aprobada dura un mes.
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    // El autor vio la decisión de Ana (sirve para avisar en el menú).
+    authorSeenAt: timestamp("author_seen_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index("community_posts_status_idx").on(t.status, t.expiresAt),
+    index("community_posts_author_idx").on(t.authorId, t.createdAt),
   ],
 );

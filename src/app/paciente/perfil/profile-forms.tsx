@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { Field, FormError, SubmitButton } from "@/components/form-bits";
 import { PushToggle } from "./push-toggle";
-import { changePassword, updatePhone, updateReminders, type ProfileFormState } from "./actions";
+import { changePassword, updateAlias, updateParticipation, updatePhone, updateReminders, type ProfileFormState } from "./actions";
 
 function Ok({ state }: { state: ProfileFormState }) {
   if (!state?.ok) return null;
@@ -107,6 +107,44 @@ export function RemindersForm({ reminders, vapidPublicKey }: { reminders: Remind
       </fieldset>
       <Ok state={state} />
       <SubmitButton>Guardar preferencias</SubmitButton>
+    </form>
+  );
+}
+
+export function AliasForm({ alias }: { alias: string }) {
+  const [state, action] = useActionState(updateAlias, undefined);
+  return (
+    <form action={action} className="flex flex-col gap-3">
+      <Field
+        label="Nombre de usuario"
+        name="alias"
+        autoComplete="off"
+        required
+        defaultValue={state?.values?.alias ?? alias}
+        hint="Es lo único que ven los demás cuando comentás o publicás. No uses tu nombre real. Entre 3 y 24 caracteres."
+      />
+      <FormError message={state?.error} />
+      <Ok state={state} />
+      <SubmitButton>Guardar nombre de usuario</SubmitButton>
+    </form>
+  );
+}
+
+export function ParticipationForm({ forum, library, community }: { forum: boolean; library: boolean; community: boolean }) {
+  const [state, action] = useActionState(updateParticipation, undefined);
+  return (
+    <form action={action} className="flex flex-col gap-3">
+      <fieldset className="flex flex-col">
+        <legend className="mb-1 text-sm font-extrabold text-suave">Quiero ver y participar en:</legend>
+        <Check name="useForum" label="Foro" hint="Material compartido por el consultorio." checked={forum} />
+        <Check name="useLibrary" label="Biblioteca" hint="Los libros del consultorio y sus comentarios." checked={library} />
+        <Check name="useCommunity" label="Comunidad" hint="Publicaciones entre pacientes: emprendimientos, eventos, películas." checked={community} />
+      </fieldset>
+      <p className="text-[13px] font-semibold text-suave">
+        Si desactivás una sección, deja de aparecerte y no participás en ella. Tus turnos y el resto de la aplicación siguen igual.
+      </p>
+      <Ok state={state} />
+      <SubmitButton>Guardar</SubmitButton>
     </form>
   );
 }

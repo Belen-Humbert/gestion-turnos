@@ -6,6 +6,7 @@ import { AttachmentList } from "@/components/forum/attachments";
 import { CommentsSection } from "@/components/forum/comments";
 import { formatDate } from "@/lib/dates";
 import { getPost, listAttachments, listComments } from "@/lib/forum/queries";
+import { getParticipation } from "@/lib/participation";
 import { requireUser } from "@/lib/session";
 import { MarkSeen } from "@/components/forum/mark-seen";
 import { addComment, deleteOwnComment, markMineSeen } from "../actions";
@@ -20,9 +21,10 @@ export default async function Page({
   if (!z.string().uuid().safeParse(id).success) notFound();
   const post = await getPost(id);
   if (!post) notFound();
-  const [attachments, comments] = await Promise.all([
+  const [attachments, comments, participation] = await Promise.all([
     listAttachments(id),
     listComments(id, user),
+    getParticipation(user.id),
   ]);
 
   return (
@@ -57,6 +59,7 @@ export default async function Page({
         commentsOpen={post.commentsOpen}
         commentAction={addComment}
         deleteOwn={deleteOwnComment}
+        needsAlias={!participation.alias}
       />
     </div>
   );

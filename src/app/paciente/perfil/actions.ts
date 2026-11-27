@@ -6,6 +6,7 @@ import { and, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { pushSubscriptions, sessions, users } from "@/db/schema";
+import { validateAlias } from "@/lib/alias";
 import { phoneKey } from "@/lib/phone";
 import { isAllowedPushEndpoint } from "@/lib/push-endpoint";
 import { hashPassword, MIN_PASSWORD_LENGTH, verifyPassword } from "@/lib/password";
@@ -120,4 +121,33 @@ export async function removePushSubscription(endpoint: string): Promise<{ ok: bo
   if (typeof endpoint !== "string" || endpoint.length > 1000) return { ok: false };
   await db.delete(pushSubscriptions).where(and(eq(pushSubscriptions.endpoint, endpoint), eq(pushSubscriptions.userId, user.id)));
   return { ok: true };
+}
+
+// Nombre de usuario ficticio: es lo único que ven los otros pacientes en el Foro, la Biblioteca y la Comunidad.
+export async function updateAlias(_prev: ProfileFormState, formData: FormData): Promise<ProfileFormState> {
+  const user = await requireUser("patient");
+  const raw = String(formData.get("alias") ?? "");
+  const check = validateAlias(raw, user.name);
+  if (!check.ok) return { error: check.error, values: { alias: raw } };
+  try {
+    await db.update(users).set({ alias: check.alias, aliasKey: check.key }).where(eq(users.id, user.id));
+  } catch (e) {
+    const err = e as { code?: string; cause?: { code?: string } };
+    if ((err.code ?? err.cause?.code) === "23505") return { error: "Ese nombre de usuario ya lo usa otra persona. Elegí otro.", values: { alias: raw } };
+    throw e;
+  }
+  revalidatePath("/paciente", "layout");
+  return { ok: "Nombre de usuario guardado.", values: { alias: check.alias } };
+}
+
+// Elegir si ver y participar en Foro, Biblioteca y Comunidad. El resto de la app funciona igual.
+export async function updateParticipation(_prev: ProfileFormState, formData: FormData): Promise<ProfileFormState> {
+  const user = await requireUser("patient");
+  const on = (name: string) => formData.get(name) === "on";
+  await db
+    .update(users)
+    .set({ useForum: on("useForum"), useLibrary: on("useLibrary"), useCommunity: on("useCommunity") })
+    .where(eq(users.id, user.id));
+  revalidatePath("/paciente", "layout");
+  return { ok: "Preferencias guardadas." };
 }

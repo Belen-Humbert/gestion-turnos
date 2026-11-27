@@ -1,6 +1,7 @@
 import "server-only";
 import { and, asc, count, desc, eq, isNotNull, isNull, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
+import { authorLabel } from "@/lib/author-label";
 import { attachmentGroup, type ForumFilter } from "./filters";
 import { db } from "@/db";
 import {
@@ -131,7 +132,6 @@ export type CommentView = {
   replyNew: boolean;
 };
 
-const firstName = (full: string) => full.trim().split(/\s+/)[0] ?? "";
 
 // Los pacientes ven solo el nombre de pila de quien comentó y nunca los comentarios ocultos.
 // El recorte se hace acá, en el servidor, para que el apellido no llegue al navegador de otro paciente.
@@ -144,6 +144,7 @@ export async function listComments(
       id: forumComments.id,
       userId: forumComments.userId,
       name: users.name,
+      alias: users.alias,
       role: users.role,
       body: forumComments.body,
       createdAt: forumComments.createdAt,
@@ -170,7 +171,7 @@ export async function listComments(
         );
   return shown.map((r) => ({
     id: r.id,
-    author: viewer.role === "admin" ? r.name : firstName(r.name),
+    author: authorLabel(viewer.role, { role: r.role, name: r.name, alias: r.alias }),
     isAdmin: r.role === "admin",
     mine: r.userId === viewer.id,
     body: r.body,

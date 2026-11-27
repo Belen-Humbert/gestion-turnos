@@ -6,7 +6,7 @@ import path from "node:path";
 import { deflateSync } from "node:zlib";
 import { eq, inArray, like, or } from "drizzle-orm";
 import { db, pool } from "../src/db";
-import { changeRequests, events, forumAttachments, forumComments, libraryComments, forumPosts, invitations, patientNotes, sessions, users } from "../src/db/schema";
+import { changeRequests, events, forumAttachments, forumComments, libraryComments, communityPosts, forumPosts, invitations, patientNotes, sessions, users } from "../src/db/schema";
 import { addDays, localToDate, mondayOf, snapToWeekday, todayYmd } from "../src/lib/dates";
 import { hashPassword } from "../src/lib/password";
 
@@ -17,12 +17,12 @@ import { hashPassword } from "../src/lib/password";
 // Las citas se arman alrededor de la semana actual, así que conviene correrlo el mismo día de la demo.
 const DEMO_PASSWORD = "demo-paciente-123";
 const PEOPLE = [
-  { name: "Lucía Fernández", phone: "261 555 0101" },
-  { name: "Martín Giménez", phone: "261 555 0102" },
-  { name: "Sofía Rodríguez", phone: "261 555 0103" },
-  { name: "Tomás Herrera", phone: "261 555 0104" },
-  { name: "Valentina Ortiz", phone: "261 555 0105" },
-  { name: "Joaquín Molina", phone: "261 555 0106" },
+  { name: "Lucía Fernández", alias: "Luna", phone: "261 555 0101" },
+  { name: "Martín Giménez", alias: "Cedro", phone: "261 555 0102" },
+  { name: "Sofía Rodríguez", alias: "Brisa", phone: "261 555 0103" },
+  { name: "Tomás Herrera", alias: "Nube", phone: "261 555 0104" },
+  { name: "Valentina Ortiz", alias: "Roble", phone: "261 555 0105" },
+  { name: "Joaquín Molina", alias: "Alba", phone: "261 555 0106" },
 ];
 const OTHER_EVENTS = ["Clase: Psicología Clínica", "Supervisión de casos"];
 const POSTS = ["Respiración guiada para dormir", "Lecturas de la semana", "Una postal de primavera"];
@@ -126,6 +126,7 @@ async function reset() {
   if (ids.length === 0) return;
   await db.delete(forumComments).where(inArray(forumComments.userId, ids));
   await db.delete(libraryComments).where(inArray(libraryComments.userId, ids));
+  await db.delete(communityPosts).where(inArray(communityPosts.authorId, ids));
   await db.delete(changeRequests).where(inArray(changeRequests.patientId, ids));
   await db.delete(patientNotes).where(inArray(patientNotes.patientId, ids));
   await db.delete(events).where(inArray(events.patientId, ids));
@@ -145,7 +146,7 @@ async function main() {
   const passwordHash = await hashPassword(DEMO_PASSWORD);
   const ids: string[] = [];
   for (const [i, p] of PEOPLE.entries()) {
-    const [u] = await db.insert(users).values({ role: "patient", name: p.name, email: `demo${i + 1}@example.com`, phone: p.phone, phoneKey: phoneKey(p.phone), passwordHash, active: i !== 5 }).returning({ id: users.id });
+    const [u] = await db.insert(users).values({ role: "patient", name: p.name, alias: p.alias, aliasKey: p.alias.toLowerCase(), email: `demo${i + 1}@example.com`, phone: p.phone, phoneKey: phoneKey(p.phone), passwordHash, active: i !== 5 }).returning({ id: users.id });
     ids.push(u.id);
   }
 

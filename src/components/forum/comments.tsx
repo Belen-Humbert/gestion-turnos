@@ -21,6 +21,7 @@ export function CommentsSection({
   adminName = "Ana",
   openReplies = false,
   label = "esta publicación",
+  needsAlias = false,
 }: {
   postId: string;
   comments: CommentView[];
@@ -34,13 +35,15 @@ export function CommentsSection({
   // Biblioteca: cualquiera puede responder en cualquier comentario (no solo en los propios).
   openReplies?: boolean;
   label?: string;
+  // Paciente sin nombre de usuario: puede leer pero todavía no comentar.
+  needsAlias?: boolean;
 }) {
   const visible = comments.filter((c) => !c.hidden).length;
   const roots = comments.filter((c) => !c.parentId);
   const replies = new Map<string, CommentView[]>();
   for (const c of comments) if (c.parentId) replies.set(c.parentId, [...(replies.get(c.parentId) ?? []), c]);
   // Ana puede responder en cualquier comentario; cada paciente solo en los suyos (para seguir la charla con Ana).
-  const canReply = (root: CommentView) => (viewer === "admin" ? true : (openReplies || root.mine) && commentsOpen);
+  const canReply = (root: CommentView) => (viewer === "admin" ? true : !needsAlias && (openReplies || root.mine) && commentsOpen);
 
   function renderComment(c: CommentView) {
     return (
@@ -100,9 +103,9 @@ export function CommentsSection({
     <section aria-label="Comentarios" className="rounded-[22px] border border-borde bg-white p-6">
       <h2 className="text-lg font-extrabold">Comentarios ({visible})</h2>
       {viewer === "patient" ? (
-        <p className="mb-4 mt-0.5 text-sm font-semibold text-suave">Los demás pacientes ven solo tu nombre de pila.</p>
+        <p className="mb-4 mt-0.5 text-sm font-semibold text-suave">Los demás pacientes ven solo tu nombre de usuario, nunca tu nombre real.</p>
       ) : (
-        <p className="mb-4 mt-0.5 text-sm font-semibold text-suave">Vos ves el nombre completo. Los pacientes ven solo el nombre de pila.</p>
+        <p className="mb-4 mt-0.5 text-sm font-semibold text-suave">Vos ves el nombre real y el nombre de usuario. Los pacientes ven solo el nombre de usuario.</p>
       )}
 
       {comments.length === 0 ? (
@@ -123,7 +126,12 @@ export function CommentsSection({
         </ul>
       )}
 
-      {commentsOpen || viewer === "admin" ? (
+      {needsAlias && viewer === "patient" ? (
+        <p role="note" className="rounded-xl bg-amarillo px-3.5 py-3 text-sm font-bold text-[#5e3f00]">
+          Para comentar, primero elegí un nombre de usuario (no tiene que ser tu nombre real).{" "}
+          <a href="/paciente/perfil?seccion=privacidad" className="underline">Elegirlo en Perfil</a>.
+        </p>
+      ) : commentsOpen || viewer === "admin" ? (
         <CommentForm
           action={commentAction}
           postId={postId}

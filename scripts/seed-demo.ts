@@ -2,7 +2,7 @@ import "dotenv/config";
 import { phoneKey } from "../src/lib/phone";
 import { inArray, like } from "drizzle-orm";
 import { db, pool } from "../src/db";
-import { changeRequests, events, forumComments, libraryComments, invitations, patientNotes, sessions, users } from "../src/db/schema";
+import { changeRequests, events, forumComments, libraryComments, communityPosts, invitations, patientNotes, sessions, users } from "../src/db/schema";
 import { addDays, localToDate, snapToWeekday, todayYmd } from "../src/lib/dates";
 import { hashPassword } from "../src/lib/password";
 
@@ -12,12 +12,12 @@ import { hashPassword } from "../src/lib/password";
 // Todos entran con la contraseña DEMO_PASSWORD y el correo demo1@example.com, demo2@example.com…
 const DEMO_PASSWORD = "demo-paciente-123";
 const PEOPLE = [
-  { name: "Lucía Fernández", phone: "261 555 0101" },
-  { name: "Martín Giménez", phone: "261 555 0102" },
-  { name: "Sofía Rodríguez", phone: "261 555 0103" },
-  { name: "Tomás Herrera", phone: "261 555 0104" },
-  { name: "Valentina Ortiz", phone: "261 555 0105" },
-  { name: "Joaquín Molina", phone: "261 555 0106" },
+  { name: "Lucía Fernández", alias: "Luna", phone: "261 555 0101" },
+  { name: "Martín Giménez", alias: "Cedro", phone: "261 555 0102" },
+  { name: "Sofía Rodríguez", alias: "Brisa", phone: "261 555 0103" },
+  { name: "Tomás Herrera", alias: "Nube", phone: "261 555 0104" },
+  { name: "Valentina Ortiz", alias: "Roble", phone: "261 555 0105" },
+  { name: "Joaquín Molina", alias: "Alba", phone: "261 555 0106" },
 ];
 
 async function reset() {
@@ -26,6 +26,7 @@ async function reset() {
   if (ids.length === 0) return console.log("No hay datos de prueba.");
   await db.delete(forumComments).where(inArray(forumComments.userId, ids));
   await db.delete(libraryComments).where(inArray(libraryComments.userId, ids));
+  await db.delete(communityPosts).where(inArray(communityPosts.authorId, ids));
   await db.delete(changeRequests).where(inArray(changeRequests.patientId, ids));
   await db.delete(patientNotes).where(inArray(patientNotes.patientId, ids));
   await db.delete(events).where(inArray(events.patientId, ids));
@@ -44,7 +45,7 @@ async function main() {
     const email = `demo${i + 1}@example.com`;
     const [user] = await db
       .insert(users)
-      .values({ role: "patient", name: p.name, email, phone: p.phone, phoneKey: phoneKey(p.phone), passwordHash, active: i !== 5 })
+      .values({ role: "patient", name: p.name, alias: p.alias, aliasKey: p.alias.toLowerCase(), email, phone: p.phone, phoneKey: phoneKey(p.phone), passwordHash, active: i !== 5 })
       .onConflictDoNothing()
       .returning({ id: users.id });
     if (!user) continue; // ya existía

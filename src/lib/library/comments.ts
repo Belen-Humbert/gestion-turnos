@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { libraryBooks, libraryComments } from "@/db/schema";
 import { COMMENT_MAX } from "@/lib/forum/limits";
+import { participationError } from "@/lib/participation";
 
 const RATE_LIMIT = 5; // comentarios por paciente...
 const RATE_WINDOW_MS = 2 * 60 * 1000; // ...cada 2 minutos
@@ -28,6 +29,9 @@ export async function createBookComment(
   if (!id.success) return { error: "El libro no existe." };
   const body = bodySchema.safeParse(typeof rawBody === "string" ? rawBody : "");
   if (!body.success) return { error: body.error.issues[0]?.message ?? "Comentario inválido." };
+
+  const blocked = await participationError(user, "library");
+  if (blocked) return { error: blocked };
 
   const [book] = await db.select({ id: libraryBooks.id }).from(libraryBooks).where(eq(libraryBooks.id, id.data)).limit(1);
   if (!book) return { error: "El libro no existe." };

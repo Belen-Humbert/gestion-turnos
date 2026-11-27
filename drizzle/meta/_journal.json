@@ -106,6 +106,13 @@
       "when": 1795744018992,
       "tag": "0014_biblioteca",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1795817766826,
+      "tag": "0015_comunidad_privacidad",
+      "breakpoints": true
     }
   ]
 }

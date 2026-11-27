@@ -3,6 +3,7 @@ import { and, count, eq, gt } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db";
 import { forumComments, forumPosts } from "@/db/schema";
+import { participationError } from "@/lib/participation";
 
 import { COMMENT_MAX } from "./limits";
 export { COMMENT_MAX };
@@ -31,6 +32,9 @@ export async function createComment(
   const body = bodySchema.safeParse(typeof rawBody === "string" ? rawBody : "");
   if (!body.success)
     return { error: body.error.issues[0]?.message ?? "Comentario inválido." };
+
+  const blocked = await participationError(user, "forum");
+  if (blocked) return { error: blocked };
 
   const [post] = await db
     .select({ commentsOpen: forumPosts.commentsOpen })
