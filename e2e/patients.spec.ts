@@ -206,8 +206,10 @@ test("pacientes: celular obligatorio, sin email, ingreso con celular y alta", as
   await a.waitForFunction(() => document.querySelector("[role=alert]:not(#__next-route-announcer__)")?.textContent?.includes("celular"));
   check("celular repetido rechazado aunque esté escrito distinto", true);
 
-  // sin email
+  // sin email (esperamos a que el formulario termine de restablecerse tras el error antes de escribir)
+  await a.waitForTimeout(800);
   await a.fill("#phone", phone);
+  await a.waitForFunction((p) => (document.querySelector("#phone") as HTMLInputElement).value === p, phone);
   await a.click("button[type=submit]");
   await a.waitForSelector("text=Paciente creado");
   check("se crea sin email", (await sql(`select email is null from users where name='${name}'`)) === "t");
